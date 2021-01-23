@@ -13,7 +13,6 @@ from anki_forvo_dl.Forvo import Forvo
 from anki_forvo_dl.Util import get_field_id
 
 asset_dir = os.path.join(os.readlink(os.path.dirname(__file__)), "assets")
-showInfo(asset_dir)
 temp_dir = os.path.join(os.readlink(os.path.dirname(__file__)), "temp")
 
 search_field = "Word"
@@ -55,9 +54,9 @@ def on_editor_btn_click(editor: Editor):
 
 
 def on_browser_ctx_menu_click(browser: Browser, selected):
-
     dialog = BulkAdd(browser.window(), [browser.mw.col.getCard(card) for card in selected], browser.mw)
     dialog.show()
+
 
 def add_editor_button(buttons: List[str], editor: Editor):
     editor._links["forvo_dl"] = on_editor_btn_click
@@ -70,8 +69,6 @@ def add_editor_button(buttons: List[str], editor: Editor):
 
 
 def add_browser_context_menu_entry(browser: Browser, m: QMenu):
-    # browser.model.selectedCards
-    # selected_rows = set(index.row() for index in browser.form.tableView.selectedIndexes())
     selected = browser.selectedCards()
     m.addSeparator()
     action = m.addAction(QIcon(os.path.join(asset_dir, "icon.png")), "Bulk add Forvo audio to " + str(len(selected)) + " card" + ("s" if len(selected) != 1 else "") + "...")

@@ -64,23 +64,14 @@ class AddSingle(QDialog):
         super().__init__(parent)
         from anki_forvo_dl import asset_dir
 
-        font_db = QFontDatabase()
-        font_db.addApplicationFont(os.path.join(asset_dir, "IBMPlexSans-Bold.ttf"))
-        font_db.addApplicationFont(os.path.join(asset_dir, "IBMPlexSans-Italic.ttf"))
-        font_db.addApplicationFont(os.path.join(asset_dir, "IBMPlexSans-Regular.ttf"))
-
         self.selected_pronunciation: Pronunciation = None
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.description = "<h1>anki_forvo_dl</h1><p>Please select the audio you want to add.</p>"
         self.description_label = QLabel(text=self.description)
         self.description_label.setAlignment(Qt.AlignCenter)
-        # self.description_label.setFont(QFont("IBM Plex Sans"))
         self.layout.addWidget(self.description_label)
 
-        self.setStyleSheet("""
-            font-family: IBM Plex Sans;
-        """)
         # Create the list
         pronunciation_list = QListWidget()
         pronunciation_list.setStyleSheet("""

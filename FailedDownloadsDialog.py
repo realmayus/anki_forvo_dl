@@ -1,44 +1,63 @@
 import os
 from typing import List
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFontDatabase
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QTableView, QListWidget, QListWidgetItem, QHBoxLayout, \
-    QPushButton, QAbstractScrollArea
+import aqt
+from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtGui import QFontDatabase, QKeySequence, QDesktopServices
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QListWidget, QListWidgetItem, QAbstractScrollArea, \
+    QDialogButtonBox, QPushButton, QHBoxLayout, QWidget, QAbstractItemView
 from anki.cards import Card
-from aqt.utils import showInfo
+
+from aqt import gui_hooks
+from aqt.editcurrent import EditCurrent
+from aqt.utils import restoreGeom, saveGeom
 
 from anki_forvo_dl import Exceptions
 from anki_forvo_dl.Util import FailedDownload
 
 
-# class FailedListWidgetItemWidget(QWidget):
-#     def __init__(self, label: str, card: Card):
-#         from anki_forvo_dl import asset_dir
-#
-#
-#         hbox = QHBoxLayout()
-#         hbox.addWidget(QLabel(label))
-#         hbox.addStretch()
-#         hbox.addWidget(QPushButton("Card...").clicked.connect(lambda: ))
-#
-#
-#         self.setLayout(vbox)
+class FailedListWidgetItemWidget(QWidget):
+    def __init__(self, label: str, card: Card, mw, parent, specific_info: str = None):
+        super().__init__()
+        self.mw = mw
+        self.card = card
+        self.parent = parent
+        hbox = QHBoxLayout()
+        hbox.addWidget(QLabel(label))
+        hbox.addStretch()
+        more_info = QLabel(specific_info)
+        hbox.addWidget(more_info)
+        card_btn = QPushButton("Card")
+        card_btn.clicked.connect(self.open_dialog)
+        forvo_btn = QPushButton("Forvo")
+        forvo_btn.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://forvo.com/search/" + label)))
+        hbox.addWidget(card_btn)
+        hbox.addWidget(forvo_btn)
+        hbox.setContentsMargins(10, 0, 0, 0)
+        self.setMinimumHeight(40)
+        vbox = QVBoxLayout()
+        vbox.addLayout(hbox)
+        vbox.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(vbox)
+        self.dialog = PopupEditor(self.mw, self.card, self.parent)
+
+    def open_dialog(self):
+        try:
+            self.dialog.show()
+        except RuntimeError:
+            self.dialog = PopupEditor(self.mw, self.card, self.parent)
+            self.dialog.show()
 
 
 class FailedDownloadsDialog(QDialog):
 
-    def __init__(self, parent, failed):
+    def __init__(self, parent, failed, mw):
         super().__init__(parent)
-        from anki_forvo_dl import asset_dir
 
+        self.parent = parent
         self.failed: List[FailedDownload] = failed
-
-        font_db = QFontDatabase()
-        font_db.addApplicationFont(os.path.join(asset_dir, "IBMPlexSans-Bold.ttf"))
-        font_db.addApplicationFont(os.path.join(asset_dir, "IBMPlexSans-Italic.ttf"))
-        font_db.addApplicationFont(os.path.join(asset_dir, "IBMPlexSans-Regular.ttf"))
         self.setFixedWidth(400)
+        self.mw = mw
 
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
@@ -68,6 +87,15 @@ class FailedDownloadsDialog(QDialog):
 
         return reasons
 
+    @staticmethod
+    def get_specified_field_or_first_non_empty(card: Card, preference: str) -> str:
+        if preference in card.note().keys():
+            return card.note()[preference]
+        for field, value in card.note().items():
+            if value is not None and len(value) != 0:
+                return value
+        return "No fields"
+
     def show_reasons(self):
         from anki_forvo_dl.BulkAdd import query_field
 
@@ -83,12 +111,45 @@ class FailedDownloadsDialog(QDialog):
 
             table = QListWidget()
             for fail in fails:
-                item = QListWidgetItem(fail.card.note()[query_field])  #TODO
+                item = QListWidgetItem("")
                 table.addItem(item)
+
+                item_widget = FailedListWidgetItemWidget(
+                    self.get_specified_field_or_first_non_empty(fail.card, query_field),
+                    fail.card,
+                    self.mw,
+                    self.parent,
+                    fail.reason.specific_info if hasattr(fail.reason, "specific_info") else None
+                )
+
+                item.setSizeHint(item_widget.minimumSizeHint())
+                table.setItemWidget(item, item_widget)
+            table.setSelectionMode(QAbstractItemView.NoSelection)
             table.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
             table.adjustSize()
             self.layout.addWidget(table)
         self.adjustSize()
 
 
+class PopupEditor(EditCurrent):
 
+    def __init__(self, mw, card, parent):
+        QDialog.__init__(self, parent, Qt.Window)
+        mw.setupDialogGC(self)
+        self.mw = mw
+        self.form = aqt.forms.editcurrent.Ui_Dialog()
+        self.form.setupUi(self)
+        self.setWindowTitle("Edit Card")
+        self.setMinimumHeight(400)
+        self.setMinimumWidth(250)
+        self.form.buttonBox.button(QDialogButtonBox.Close).setShortcut(
+            QKeySequence("Ctrl+Return")
+        )
+        self.editor = aqt.editor.Editor(self.mw, self.form.fieldsArea, self)
+        self.editor.card = card
+        self.editor.setNote(card.note(), focusTo=0)
+        # gui_hooks.state_did_reset.append(self.onReset)
+
+    def _saveAndClose(self):
+        self.editor.cleanup()
+        QDialog.reject(self)

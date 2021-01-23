@@ -26,10 +26,6 @@ class BulkAdd(QDialog):
         super().__init__(parent)
         from anki_forvo_dl import asset_dir
 
-        font_db = QFontDatabase()
-        font_db.addApplicationFont(os.path.join(asset_dir, "IBMPlexSans-Bold.ttf"))
-        font_db.addApplicationFont(os.path.join(asset_dir, "IBMPlexSans-Italic.ttf"))
-        font_db.addApplicationFont(os.path.join(asset_dir, "IBMPlexSans-Regular.ttf"))
         self.setFixedWidth(400)
         self.selected_pronunciation: Pronunciation = None
         self.layout = QVBoxLayout()
@@ -48,10 +44,6 @@ class BulkAdd(QDialog):
         self.btn = QPushButton("Start Downloads")
         self.btn.clicked.connect(self.start_downloads_wrapper)
         self.layout.addWidget(self.btn)
-
-        self.setStyleSheet("""
-            font-family: IBM Plex Sans;
-        """)
 
         self.th = Thread(cards, mw)
 
@@ -75,7 +67,7 @@ class BulkAdd(QDialog):
 
     def review_downloads(self):
         # showInfo(str(self.th.failed) + " downloads failed.")
-        dialog = FailedDownloadsDialog(self.parent, self.th.failed)
+        dialog = FailedDownloadsDialog(self.parent, self.th.failed, self.mw)
         dialog.finished.connect(lambda: self.close())
         dialog.show()
 
@@ -130,9 +122,9 @@ class Thread(QThread):
             if not self._status:
                 self.cond.wait(self.mutex)
             try:
-                query = card.note()[query_field]
-                if query is None:
+                if query_field not in card.note():
                     raise FieldNotFoundException(query_field)
+                query = card.note()[query_field]
                 results = Forvo(query, "ja", self.mw) \
                     .load_search_query() \
                     .get_pronunciations().pronunciations
