@@ -80,12 +80,12 @@ class Forvo:
 
     def get_pronunciations(self):
         """Creates pronunciation objects from the soup"""
-        available_langs_el = self.html.find_all(id=re.compile(r"language-container-\w{2,3}"))
-        available_langs = [re.findall(r"language-container-(\w{2,3})", el.attrs["id"])[0] for el in available_langs_el]
+        available_langs_el = self.html.find_all(id=re.compile(r"language-container-\w{2,4}"))
+        available_langs = [re.findall(r"language-container-(\w{2,4})", el.attrs["id"])[0] for el in available_langs_el]
         if self.language not in available_langs:
             raise NoResultsException()
         lang_container = [lang for lang in available_langs_el if
-                          re.findall(r"language-container-(\w{2,3})", lang.attrs["id"])[0] == self.language][0]
+                          re.findall(r"language-container-(\w{2,4})", lang.attrs["id"])[0] == self.language][0]
         pronunciations: Tag = lang_container.find_all(class_="pronunciations")[0].find_all(class_="show-all-pronunciations")[0].find_all("li")
 
         for pronunciation in pronunciations:

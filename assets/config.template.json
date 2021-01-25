@@ -1,0 +1,29 @@
+{
+  "noteTypeSpecific": {
+    "searchField": {
+      "friendly": "Search Field",
+      "default": "Word",
+      "description": "The field whose content will be used to search on Forvo."
+    },
+    "backupSearchField": {
+      "friendly": "Backup Search Field",
+      "description": "The field whose content will be used to search on Forvo when there are no results for the search field's content."
+    },
+    "audioField": {
+      "friendly": "Audio Field",
+      "description": "The field where the downloaded audio will be placed in."
+    }
+  },
+  "deckSpecific": {
+    "language": {
+      "friendly": "Deck Language",
+      "description": "The language of this deck that will be used to search on Forvo",
+      "default": "ja"
+    }
+  },
+  "skipExisting": {
+    "friendly": "Skip existing",
+    "description": "Skip cards that already have content in their audio field",
+    "default": true
+  }
+}

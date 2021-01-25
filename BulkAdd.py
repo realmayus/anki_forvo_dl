@@ -145,6 +145,8 @@ class Thread(QThread):
         Forvo.cleanup(None)
 
     def toggle_status(self):
+        with open(".", "a") as f:
+            f.write("")
         self._status = not self._status
         if self._status:
             self.cond.wakeAll()

@@ -148,7 +148,6 @@ class PopupEditor(EditCurrent):
         self.editor = aqt.editor.Editor(self.mw, self.form.fieldsArea, self)
         self.editor.card = card
         self.editor.setNote(card.note(), focusTo=0)
-        # gui_hooks.state_did_reset.append(self.onReset)
 
     def _saveAndClose(self):
         self.editor.cleanup()
