@@ -12,6 +12,8 @@ from anki.cards import Card
 from aqt import AnkiQt
 from aqt.utils import showInfo
 
+from anki_forvo_dl.LanguageSelector import LanguageSelector
+from anki_forvo_dl.Config import Config, ConfigObject
 from anki_forvo_dl.Exceptions import FieldNotFoundException
 from anki_forvo_dl.FailedDownloadsDialog import FailedDownloadsDialog
 from anki_forvo_dl.Util import get_field_id, FailedDownload
@@ -22,10 +24,9 @@ audio_field = "Audio"
 
 
 class BulkAdd(QDialog):
-    def __init__(self, parent, cards: List[Card], mw):
+    def __init__(self, parent, cards: List[Card], mw, config: Config):
         super().__init__(parent)
-        from anki_forvo_dl import asset_dir
-
+        self.config: Config = config
         self.setFixedWidth(400)
         self.selected_pronunciation: Pronunciation = None
         self.layout = QVBoxLayout()
@@ -66,7 +67,6 @@ class BulkAdd(QDialog):
         self.mw: AnkiQt = mw
 
     def review_downloads(self):
-        # showInfo(str(self.th.failed) + " downloads failed.")
         dialog = FailedDownloadsDialog(self.parent, self.th.failed, self.mw)
         dialog.finished.connect(lambda: self.close())
         dialog.show()
@@ -76,8 +76,70 @@ class BulkAdd(QDialog):
         self.th.toggle_status()
         self.pb.setText({True: "Pause", False: "Resume"}[self.th.status])
 
+    def select_lang(self, missing):
+        deck_id = missing[0]
+        d = LanguageSelector(self.parent)
+
+        def handle_lang_select():
+            if d.selected_lang is not None:
+                self.config.set_deck_specific_config_object(
+                    ConfigObject(name="language", value=d.selected_lang, deck=deck_id))
+                if len(missing) > 1:
+                    missing.pop()
+                    self.select_lang(missing)
+                else:
+                    self.start_downloads()
+            else:
+                showInfo("Cancelled download because no language was selected.")
+                return
+
+        d.finished.connect(handle_lang_select)
+        d.show()
+
+
+    def ensure_languages(self):
+        """Ensures that the language is set for all selected decks; otherwise show dialog"""
+        missing = list(set([card.did for card in self.cards if self.config.get_deck_specific_config_object("language", card.did) is None]))
+        if len(missing) > 0:
+            self.select_lang(missing)
+        else:
+            self.start_downloads()
+
 
     def start_downloads_wrapper(self):
+        self.ensure_fields()
+        self.ensure_languages()
+
+    def select_field(self, missing, fieldType: str, friendlyType: str): #TODO
+        deck_id = missing[0]
+        d = LanguageSelector(self.parent)
+
+        def handle_lang_select():
+            if d.selected_lang is not None:
+                self.config.set_deck_specific_config_object(
+                    ConfigObject(name="language", value=d.selected_lang, deck=deck_id))
+                if len(missing) > 1:
+                    missing.pop()
+                    self.select_lang(missing)
+                else:
+                    self.start_downloads()
+            else:
+                showInfo("Cancelled download because field wasn't selected.")
+                return
+
+        d.finished.connect(handle_lang_select)
+        d.show()
+
+    def ensure_fields(self):
+        showInfo(str(self.cards[0].note_type()))
+        missing = list(set([card.note_type() for card in self.cards if self.config.get_note_type_specific_config_object("searchField", card.did) is None]))
+        if len(missing) > 0:
+            self.select_field(missing, "searchField", "Search Field")
+        else:
+            self.start_downloads()
+
+
+    def start_downloads(self):
         self.btn.setVisible(False)
         self.skipCheckbox.setEnabled(False)
         self.pb.setVisible(True)
@@ -85,8 +147,6 @@ class BulkAdd(QDialog):
         self.adjustSize()
         self.th.start()
 
-        # self.mw.window().connect(self.progress_thread, Qt.SIGNAL("progress()"), self.update_progress_bar)
-        # self.progress_thread.start()
 
     def update_progress_bar(self):
         self.progress.setValue(self.progress.value() + 1)

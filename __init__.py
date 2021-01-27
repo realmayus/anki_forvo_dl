@@ -89,7 +89,7 @@ def on_editor_btn_click(editor: Editor):
 
 
 def on_browser_ctx_menu_click(browser: Browser, selected):
-    dialog = BulkAdd(browser.window(), [browser.mw.col.getCard(card) for card in selected], browser.mw)
+    dialog = BulkAdd(browser.window(), [browser.mw.col.getCard(card) for card in selected], browser.mw, config)
     dialog.show()
 
 
