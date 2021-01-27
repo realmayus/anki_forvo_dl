@@ -3,6 +3,7 @@ from typing import List
 from anki.decks import DeckManager
 from anki.hooks import addHook
 from aqt import mw, gui_hooks
+from aqt.addcards import AddCards
 from aqt.browser import Browser
 from aqt.editor import Editor
 from aqt.qt import *
@@ -11,23 +12,25 @@ from aqt.utils import showInfo
 from anki_forvo_dl.About import About
 from anki_forvo_dl.AddSingle import AddSingle
 from anki_forvo_dl.BulkAdd import BulkAdd
+from anki_forvo_dl.Config import Config, ConfigObject
 from anki_forvo_dl.ConfigManager import ConfigManager
 from anki_forvo_dl.Forvo import Forvo
+from anki_forvo_dl.LanguageSelector import LanguageSelector
 from anki_forvo_dl.Util import get_field_id
 
 asset_dir = os.path.join(os.readlink(os.path.dirname(__file__)), "assets")
 temp_dir = os.path.join(os.readlink(os.path.dirname(__file__)), "temp")
 user_files_dir = os.path.join(os.readlink(os.path.dirname(__file__)), "user_files")
 
+"""Ensure directories"""
+for path in [temp_dir, user_files_dir]:
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+config = Config(os.path.join(user_files_dir, "config.json"), os.path.join(asset_dir, "config.template.json")).load_config().load_template().ensure_options()
+
 search_field = "Word"
 audio_field = "Audio"
-
-
-def ensure_directories():
-    """Creates some directories if they don't exist yet."""
-    for path in [temp_dir, user_files_dir]:
-        if not os.path.exists(path):
-            os.makedirs(path)
 
 
 def on_editor_btn_click(editor: Editor):
@@ -41,25 +44,48 @@ def on_editor_btn_click(editor: Editor):
         """Last resort: Show error"""
         showInfo("Please enter a search term in the field '" + search_field + "' or focus the field you want to search for.\nYou can change the search field under Tools > anki_forvo_dl > Search field")
         return
+    if editor.addMode:
+        showInfo("AddMode on!")
+    showInfo(str(editor.parentWindow.deckChooser.selectedId()))
+    deck_id = editor.parentWindow.deckChooser.selectedId()
+    if deck_id is not None:
+        def proceed(language):
+            results = Forvo(query, language, editor.mw) \
+                .load_search_query() \
+                .get_pronunciations() \
+                .download_pronunciations() \
+                .cleanup() \
+                .pronunciations
 
-    results = Forvo(query, "ja", editor.mw)\
-        .load_search_query()\
-        .get_pronunciations()\
-        .download_pronunciations()\
-        .cleanup()\
-        .pronunciations
+            dialog = AddSingle(editor.parentWindow, pronunciations=results)
 
-    dialog = AddSingle(editor.parentWindow, pronunciations=results)
+            def handle_close():
+                if dialog.selected_pronunciation is not None:
+                    editor.note.fields[
+                        get_field_id(audio_field, editor.note)] = "[sound:%s]" % dialog.selected_pronunciation.audio
+                    if not editor.addMode:
+                        editor.note.flush()
+                    editor.loadNote()
 
-    def handle_close():
-        if dialog.selected_pronunciation is not None:
-            editor.note.fields[get_field_id(audio_field, editor.note)] = "[sound:%s]" % dialog.selected_pronunciation.audio
-            if not editor.addMode:
-                editor.note.flush()
-            editor.loadNote()
+            dialog.finished.connect(handle_close)
+            dialog.show()
 
-    dialog.finished.connect(handle_close)
-    dialog.show()
+        config_lang = config.get_deck_specific_config_object("language", deck_id)
+
+        if config_lang is not None:
+            proceed(config_lang)
+        else:
+            d = LanguageSelector(editor.parentWindow)
+
+            def handle_lang_select():
+                if d.selected_lang is not None:
+                    config.set_deck_specific_config_object(ConfigObject(name="language", value=d.selected_lang, deck=deck_id))
+                    proceed(d.selected_lang)
+                else:
+                    showInfo("Cancelled download because no language was selected.")
+
+            d.finished.connect(handle_lang_select)
+            d.show()
 
 
 def on_browser_ctx_menu_click(browser: Browser, selected):
@@ -116,11 +142,6 @@ def test(x):
 about = About(mw)
 addHook("setupEditorButtons", add_editor_button)
 gui_hooks.browser_will_show_context_menu.append(add_browser_context_menu_entry)
-gui_hooks.collection_did_load.append(test)
-
+# gui_hooks.collection_did_load.append(test)
 
 add_menubar_action()
-
-
-
-

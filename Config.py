@@ -47,13 +47,18 @@ class Config:
 
     def load_config(self):
         """Loads the config from the file into memory"""
+        if not os.path.isfile(self.config_path):
+            self.config = dict()
+            return self
         with open(self.config_path, "r") as f:
             self.config = json.loads(f.read())
+        return self
 
     def load_template(self):
         """Loads the template from the file into memory"""
         with open(self.template_path, "r") as f:
             self.template = json.loads(f.read())
+        return self
 
     def _save(self):
         """Saves the current config from memory into the file."""
@@ -75,6 +80,7 @@ class Config:
             self.config["deckSpecific"] = []
 
         self._save()
+        return self
 
     def set_config_object(self, config_object: 'ConfigObject'):
         self.config[config_object.name] = config_object.value
@@ -99,8 +105,8 @@ class Config:
                         deck=deck_id
                     )
                 else:
-                    raise ConfigOptionNotPresentInDeckError(deck=deck_id, config_option=name)
-        raise NoConfigAvailableForDeckError(deck=deck_id)
+                    return None
+        return None
 
     def get_note_type_specific_config_object(self, name: str, note_type_id: int) -> 'ConfigObject':
         for note_type in self.config["noteTypeSpecific"]:
@@ -116,8 +122,8 @@ class Config:
                         note_type=note_type_id
                     )
                 else:
-                    raise ConfigOptionNotPresentInNoteTypeError(note_type=note_type_id, config_option=name)
-        raise NoConfigAvailableForNoteTypeError(note_type=note_type_id)
+                    return None
+        return None
 
     def set_deck_specific_config_object(self, config_object: 'ConfigObject', use_default_as_fallback=False):
         existing: list = self.config["deckSpecific"]
@@ -149,27 +155,27 @@ class ConfigObject:
     """A config 'option' that contains more than is actually saved in config.json -
     it basically merges the template information and the config value into a single object."""
     name: str
-    friendly: str
-    description: str
-    default: any
+    friendly: str = None
+    description: str = None
+    default: any = None
     value: any = None
     deck: int = None  # Only if deck-specific
     note_type: int = None  # Only if note type-specific
 
 
 
-if __name__ == "__main__":
-    config = Config(os.path.join(user_files_dir, "config.json"), os.path.join(asset_dir, "config.template.json"))
-    config.load_config()
-    config.load_template()
-    config.ensure_options()
-    co = config.get_deck_specific_config_object("language", 878798)
-    coNT = config.get_note_type_specific_config_object("audioField", 9137498)
-    co.value = None
-    config.set_deck_specific_config_object(co, True)
-    coNT.value = "HAHAHAHAHHA"
-    config.set_note_type_specific_config_object(coNT, True)
-    coNT2 = config.get_note_type_specific_config_object("searchField", 9137498)
-
-    coNT2.value = "boop"
-    config.set_note_type_specific_config_object(ConfigObject("test", "A simple fucking test.", "egegegwzefzusef", "foo", note_type=9137498), True)
+# if __name__ == "__main__":
+#     config = Config(os.path.join(user_files_dir, "config.json"), os.path.join(asset_dir, "config.template.json"))
+#     config.load_config()
+#     config.load_template()
+#     config.ensure_options()
+#     co = config.get_deck_specific_config_object("language", 878798)
+#     coNT = config.get_note_type_specific_config_object("audioField", 9137498)
+#     co.value = None
+#     config.set_deck_specific_config_object(co, True)
+#     coNT.value = "HAHAHAHAHHA"
+#     config.set_note_type_specific_config_object(coNT, True)
+#     coNT2 = config.get_note_type_specific_config_object("searchField", 9137498)
+#
+#     coNT2.value = "boop"
+#     config.set_note_type_specific_config_object(ConfigObject("test", "A simple fucking test.", "egegegwzefzusef", "foo", note_type=9137498), True)
