@@ -3,7 +3,7 @@
     "searchField": {
       "friendly": "Search Field",
       "default": "Word",
-      "description": "The field whose content will be used to search on Forvo."
+      "description": "<p>Select the field whose text anki-forvo-dl should use to search on Forvo for the note type <b>{{noteType}}</b></p>"
     },
     "backupSearchField": {
       "friendly": "Backup Search Field",

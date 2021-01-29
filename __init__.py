@@ -3,7 +3,6 @@ from typing import List
 from anki.decks import DeckManager
 from anki.hooks import addHook
 from aqt import mw, gui_hooks
-from aqt.addcards import AddCards
 from aqt.browser import Browser
 from aqt.editor import Editor
 from aqt.qt import *
@@ -18,22 +17,32 @@ from anki_forvo_dl.Forvo import Forvo
 from anki_forvo_dl.LanguageSelector import LanguageSelector
 from anki_forvo_dl.Util import get_field_id
 
+"""Paths to directories get determined based on __file__"""
 asset_dir = os.path.join(os.readlink(os.path.dirname(__file__)), "assets")
 temp_dir = os.path.join(os.readlink(os.path.dirname(__file__)), "temp")
 user_files_dir = os.path.join(os.readlink(os.path.dirname(__file__)), "user_files")
 
-"""Ensure directories"""
+"""Ensure directories (create if not existing)"""
 for path in [temp_dir, user_files_dir]:
     if not os.path.exists(path):
         os.makedirs(path)
 
 config = Config(os.path.join(user_files_dir, "config.json"), os.path.join(asset_dir, "config.template.json")).load_config().load_template().ensure_options()
 
-search_field = "Word"
-audio_field = "Audio"
-
 
 def on_editor_btn_click(editor: Editor):
+    deck_id = editor.card.did if editor.card is not None else editor.parentWindow.deckChooser.selectedId()
+    note_type_id = editor.card.model if editor.card is not None else editor.mw.col.conf["curModel"]
+
+    showInfo(str(note_type_id) + ", " + str(deck_id))
+
+    search_field = config.get_note_type_specific_config_object("searchField", note_type_id).value
+    audio_field = config.get_note_type_specific_config_object("audioField", note_type_id).value
+
+    if editor.note is None:
+        showInfo("Please enter a search term in the field '" + search_field + "' or focus the field you want to search for.\nYou can change the search field under Tools > anki_forvo_dl > Search field")
+        return
+
     if editor.note is not None and editor.note[search_field] is not None and len(editor.note[search_field]) != 0:
         """If available, use the content of the defined search field as the query"""
         query = editor.note[search_field]
@@ -41,13 +50,9 @@ def on_editor_btn_click(editor: Editor):
         """If the search field is empty, use the content of the currently selected field"""
         query = editor.note.fields[editor.currentField]
     else:
-        """Last resort: Show error"""
         showInfo("Please enter a search term in the field '" + search_field + "' or focus the field you want to search for.\nYou can change the search field under Tools > anki_forvo_dl > Search field")
         return
-    if editor.addMode:
-        showInfo("AddMode on!")
-    showInfo(str(editor.parentWindow.deckChooser.selectedId()))
-    deck_id = editor.parentWindow.deckChooser.selectedId()
+
     if deck_id is not None:
         def proceed(language):
             results = Forvo(query, language, editor.mw) \
@@ -75,7 +80,7 @@ def on_editor_btn_click(editor: Editor):
         if config_lang is not None:
             proceed(config_lang)
         else:
-            d = LanguageSelector(editor.parentWindow)
+            d = LanguageSelector(editor.parentWindow, mw.col.decks.get(deck_id)["name"])
 
             def handle_lang_select():
                 if d.selected_lang is not None:
@@ -121,27 +126,19 @@ def open_about_window():
     ConfigManager(mw).show()
 
 
-def add_menubar_action():
-    menu = QMenu("anki-forvo-dl")
-    action_a = QAction("About", menu)
-    action_s = QAction("Settings", menu)
-    action_a.triggered.connect(open_about_window)
-    action_s.triggered.connect(lambda: open_config_manager(mw))
-    menu.addAction(action_a)
-    menu.addAction(action_s)
-    mw.form.menuTools.addAction(action_s)
-
-
-def test(x):
-    deck: DeckManager = mw.col.decks
-    deck.all_names_and_ids()
-    with open(asset_dir + "/debug.txt", "w", encoding="utf-8") as f:
-        f.write(", ".join([str(deck_) for deck_ in deck.all_names_and_ids()]))
+# def add_menubar_action():
+#     menu = QMenu("anki-forvo-dl")
+#     action_a = QAction("About", menu)
+#     action_s = QAction("Settings", menu)
+#     action_a.triggered.connect(open_about_window)
+#     action_s.triggered.connect(lambda: open_config_manager(mw))
+#     menu.addAction(action_a)
+#     menu.addAction(action_s)
+#     mw.form.menuTools.addAction(action_s)
 
 
 about = About(mw)
 addHook("setupEditorButtons", add_editor_button)
 gui_hooks.browser_will_show_context_menu.append(add_browser_context_menu_entry)
-# gui_hooks.collection_did_load.append(test)
 
-add_menubar_action()
+# add_menubar_action()

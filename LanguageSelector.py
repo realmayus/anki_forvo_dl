@@ -8,7 +8,7 @@ from aqt.utils import showInfo
 
 class LanguageSelector(QDialog):
 
-    def __init__(self, parent):
+    def __init__(self, parent, deck_name):
         from anki_forvo_dl import asset_dir
         super().__init__(parent)
         self.setWindowTitle("Select Language")
@@ -17,7 +17,7 @@ class LanguageSelector(QDialog):
         self.setLayout(self.layout)
 
         description = "<h1>Language select</h1>"
-        description += "<p>Please select the language for this deck so that anki-forvo-dl can find the right words on Forvo.</p><p>You can change this later in the settings dialog at Tools > anki-forvo-dl > Settings</p>"
+        description += "<p>Please select the language for the deck <b>%s</b> so that anki-forvo-dl can find the right words on Forvo.</p><p>You can change this later in the settings dialog at Tools > anki-forvo-dl > Settings</p>" % deck_name
         description_label = QLabel(description)
         description_label.setMinimumSize(self.sizeHint())
         description_label.setWordWrap(True)

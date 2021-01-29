@@ -62,7 +62,6 @@ class PronunciationWidget(QWidget):
 class AddSingle(QDialog):
     def __init__(self, parent, pronunciations: List[Pronunciation]):
         super().__init__(parent)
-        from anki_forvo_dl import asset_dir
 
         self.selected_pronunciation: Pronunciation = None
         self.layout = QVBoxLayout()
@@ -102,23 +101,3 @@ class AddSingle(QDialog):
     def select_pronunciation(self, pronunciation: Pronunciation):
         self.selected_pronunciation = pronunciation
         self.close()
-
-
-#
-# def main():
-#     app = QApplication(sys.argv)
-#     prons = [
-#         Pronunciation("ja", "strawberrybrown", "Female from Japan", 2345234, 4, "", False, "None"),
-#         Pronunciation("ja", "strawberrybrown", "Female from Japan", 2345234, 4, "", False, "None"),
-#         Pronunciation("ja", "strawberrybrown", "Female from Japan", 2345234, 4, "", False, "None"),
-#         Pronunciation("ja", "strawberrybrown", "Female from Japan", 2345234, 4, "", False, "None"),
-#         Pronunciation("ja", "strawberrybrown", "Female from Japan", 2345234, 4, "", False, "None"),
-#         Pronunciation("ja", "strawberrybrown", "Female from Japan", 2345234, 4, "", False, "None")
-#     ]
-#     main = AddSingle(parent=None, pronunciations=prons)
-#     main.show()
-#     sys.exit(app.exec_())
-#
-#
-# if __name__ == '__main__':
-#     main()

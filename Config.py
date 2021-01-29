@@ -4,33 +4,6 @@ import os
 from dataclasses import dataclass
 
 
-asset_dir = os.path.join("/Users/marius/PycharmProjects/anki-scripting/anki_forvo_dl", "assets")
-temp_dir = os.path.join("/Users/marius/PycharmProjects/anki-scripting/anki_forvo_dl", "temp")
-user_files_dir = os.path.join("/Users/marius/PycharmProjects/anki-scripting/anki_forvo_dl", "user_files")
-# TODO
-# from anki_forvo_dl import asset_dir, user_files_dir
-
-
-class NoConfigAvailableForDeckError(Exception):
-    def __init__(self, deck):
-        super().__init__("No config available for deck %s" % deck)
-
-
-class ConfigOptionNotPresentInDeckError(Exception):
-    def __init__(self, deck: int, config_option: str):
-        super().__init__("Config option %s not present in deck %s" % (config_option, deck))
-
-
-class NoConfigAvailableForNoteTypeError(Exception):
-    def __init__(self, note_type):
-        super().__init__("No config available for note type %s" % note_type)
-
-
-class ConfigOptionNotPresentInNoteTypeError(Exception):
-    def __init__(self, note_type: int, config_option: str):
-        super().__init__("Config option %s not present in note type %s" % (config_option, note_type))
-
-
 class ConfigObjectHasNoValue(Exception):
     def __init__(self, config_object: 'ConfigObject'):
         super().__init__("Config object with config option %s has no value and the default value isn't set as fallback" % config_object.name)
@@ -101,7 +74,7 @@ class Config:
                         self.template["deckSpecific"][name]["friendly"],
                         self.template["deckSpecific"][name]["description"],
                         self.template["deckSpecific"][name].get("default", None) or None,
-                        list(deck.values())[1],  # items()[0] is "id", items()[1] is name of option
+                        deck[name],  # items()[0] is "id", items()[1] is name of option
                         deck=deck_id
                     )
                 else:
@@ -118,7 +91,7 @@ class Config:
                         self.template["noteTypeSpecific"][name]["friendly"],
                         self.template["noteTypeSpecific"][name]["description"],
                         self.template["noteTypeSpecific"][name].get("default", None) or None,
-                        list(note_type.values())[1],  # items()[0] is "id", items()[1] is name of option
+                        note_type[name],  # items()[0] is "id", items()[1] is name of option
                         note_type=note_type_id
                     )
                 else:
@@ -149,6 +122,12 @@ class Config:
         self.config["noteTypeSpecific"] = existing
         self._save()
 
+    def get_template(self, option: str, category=None):
+        if category is None:
+            return self.template[option]
+        else:
+            return self.template[category][option]
+
 
 @dataclass
 class ConfigObject:
@@ -161,21 +140,3 @@ class ConfigObject:
     value: any = None
     deck: int = None  # Only if deck-specific
     note_type: int = None  # Only if note type-specific
-
-
-
-# if __name__ == "__main__":
-#     config = Config(os.path.join(user_files_dir, "config.json"), os.path.join(asset_dir, "config.template.json"))
-#     config.load_config()
-#     config.load_template()
-#     config.ensure_options()
-#     co = config.get_deck_specific_config_object("language", 878798)
-#     coNT = config.get_note_type_specific_config_object("audioField", 9137498)
-#     co.value = None
-#     config.set_deck_specific_config_object(co, True)
-#     coNT.value = "HAHAHAHAHHA"
-#     config.set_note_type_specific_config_object(coNT, True)
-#     coNT2 = config.get_note_type_specific_config_object("searchField", 9137498)
-#
-#     coNT2.value = "boop"
-#     config.set_note_type_specific_config_object(ConfigObject("test", "A simple fucking test.", "egegegwzefzusef", "foo", note_type=9137498), True)

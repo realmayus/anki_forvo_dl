@@ -1,18 +1,13 @@
-import os
+import traceback
 from typing import List
-
-import aqt
 from PyQt5.QtCore import Qt, QUrl
-from PyQt5.QtGui import QFontDatabase, QKeySequence, QDesktopServices
+from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QListWidget, QListWidgetItem, QAbstractScrollArea, \
-    QDialogButtonBox, QPushButton, QHBoxLayout, QWidget, QAbstractItemView
+    QPushButton, QHBoxLayout, QWidget, QAbstractItemView
 from anki.cards import Card
+from aqt.utils import showInfo
 
-from aqt import gui_hooks
-from aqt.editcurrent import EditCurrent
-from aqt.utils import restoreGeom, saveGeom
-
-from anki_forvo_dl import Exceptions
+from anki_forvo_dl import Exceptions, Config
 from anki_forvo_dl.Util import FailedDownload
 
 
@@ -28,7 +23,7 @@ class FailedListWidgetItemWidget(QWidget):
         more_info = QLabel(specific_info)
         hbox.addWidget(more_info)
         card_btn = QPushButton("Card")
-        card_btn.clicked.connect(self.open_dialog)
+        card_btn.clicked.connect(lambda: showInfo("WIP"))
         forvo_btn = QPushButton("Forvo")
         forvo_btn.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://forvo.com/search/" + label)))
         hbox.addWidget(card_btn)
@@ -39,26 +34,18 @@ class FailedListWidgetItemWidget(QWidget):
         vbox.addLayout(hbox)
         vbox.setContentsMargins(0, 0, 0, 0)
         self.setLayout(vbox)
-        self.dialog = PopupEditor(self.mw, self.card, self.parent)
-
-    def open_dialog(self):
-        try:
-            self.dialog.show()
-        except RuntimeError:
-            self.dialog = PopupEditor(self.mw, self.card, self.parent)
-            self.dialog.show()
 
 
 class FailedDownloadsDialog(QDialog):
 
-    def __init__(self, parent, failed, mw):
+    def __init__(self, parent, failed, mw, config: Config):
         super().__init__(parent)
 
         self.parent = parent
         self.failed: List[FailedDownload] = failed
         self.setFixedWidth(400)
         self.mw = mw
-
+        self.config = config
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.description = "<h2>%s Download%s Failed</h2>" % (str(len(self.failed)), "s" if len(self.failed) != 1 else "")
@@ -72,6 +59,7 @@ class FailedDownloadsDialog(QDialog):
     def get_reasons(self):
         reasons = {}
         for fail in self.failed:
+            showInfo(''.join(traceback.format_tb(fail.reason.__traceback__)))
             error_instance = next((e for e in Exceptions.all_errors if isinstance(fail.reason, e)), None)
 
             if error_instance is not None:
@@ -97,7 +85,6 @@ class FailedDownloadsDialog(QDialog):
         return "No fields"
 
     def show_reasons(self):
-        from anki_forvo_dl.BulkAdd import query_field
 
         reasons = self.get_reasons()
         for reason, fails in reasons.items():
@@ -115,7 +102,7 @@ class FailedDownloadsDialog(QDialog):
                 table.addItem(item)
 
                 item_widget = FailedListWidgetItemWidget(
-                    self.get_specified_field_or_first_non_empty(fail.card, query_field),
+                    self.get_specified_field_or_first_non_empty(fail.card, self.config.get_note_type_specific_config_object("searchField", fail.card.note_type()["id"]).value),
                     fail.card,
                     self.mw,
                     self.parent,
@@ -129,26 +116,3 @@ class FailedDownloadsDialog(QDialog):
             table.adjustSize()
             self.layout.addWidget(table)
         self.adjustSize()
-
-
-class PopupEditor(EditCurrent):
-
-    def __init__(self, mw, card, parent):
-        QDialog.__init__(self, parent, Qt.Window)
-        mw.setupDialogGC(self)
-        self.mw = mw
-        self.form = aqt.forms.editcurrent.Ui_Dialog()
-        self.form.setupUi(self)
-        self.setWindowTitle("Edit Card")
-        self.setMinimumHeight(400)
-        self.setMinimumWidth(250)
-        self.form.buttonBox.button(QDialogButtonBox.Close).setShortcut(
-            QKeySequence("Ctrl+Return")
-        )
-        self.editor = aqt.editor.Editor(self.mw, self.form.fieldsArea, self)
-        self.editor.card = card
-        self.editor.setNote(card.note(), focusTo=0)
-
-    def _saveAndClose(self):
-        self.editor.cleanup()
-        QDialog.reject(self)
