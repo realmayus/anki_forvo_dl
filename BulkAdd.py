@@ -27,7 +27,7 @@ class BulkAdd(QDialog):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.description = "<h1>anki-forvo-dl</h1><p>anki-forvo-dl will download audio files for the selected cards based on the selected search field and put the audio in the selected audio field.</p><p>You can change these fields by going to the add-on's directory > user_files > config.json and changing the field names there.</p>"
-        self.description += "<p>Forvo offers their service for free, so please be kind and <b>don't use the bulk-add feature regularly to avoid that Forvo's servers get nuked</b>. %s cards mean %s requests to their servers. There is a delay of a second between the downloads to protect them. Try to download the audios as you create them.</p>" % (str(len(self.cards)), str(len(self.cards) * 2))
+        self.description += "<p>Forvo offers their service for free, so please be kind and <b>don't use the bulk-add feature regularly to avoid that Forvo's servers get nuked</b>. %s cards mean %s requests to their servers. There is a delay of a second between the downloads to protect them. Try to download the audio files as you create them.</p>" % (str(len(self.cards)), str(len(self.cards) * 2))
         self.description_label = QLabel(text=self.description)
         self.description_label.setMinimumSize(self.sizeHint())
         self.description_label.setStyleSheet("margin: 0; padding: 0;")
