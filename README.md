@@ -37,6 +37,7 @@ When adding audio to a card that's part of a deck that isn't known by anki-forvo
 
 <b>Liability</b>
 I am not liable for the plugin to work as described or for the downloads. Please create a backup of your anki folder before using it (just in case!)
+You are responsbile for what you download with the add-on. It is simply automating what you would normally do to download these audios.
 For the license, see: <a href="https://github.com/realmayus/anki_forvo_dl/blob/main/LICENSE" rel="nofollow">https://github.com/realmayus/anki_forvo_dl/blob/main/LICENSE</a>
 The source code is available here: <a href="https://github.com/realmayus/anki_forvo_dl" rel="nofollow">https://github.com/realmayus/anki_forvo_dl</a>
 
