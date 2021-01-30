@@ -3,15 +3,15 @@
     "searchField": {
       "friendly": "Search Field",
       "default": "Word",
-      "description": "<p>Select the field whose text anki-forvo-dl should use to search on Forvo for the note type <b>{{noteType}}</b></p>"
+      "description": "<p>Select the field whose text should be used to search on Forvo.</p><p>Note type: <b>{{noteType}}</b></p>"
     },
     "backupSearchField": {
       "friendly": "Backup Search Field",
-      "description": "The field whose content will be used to search on Forvo when there are no results for the search field's content."
+      "description": ""
     },
     "audioField": {
       "friendly": "Audio Field",
-      "description": "The field where the downloaded audio will be placed in."
+      "description": "<p>Select the field where the audio should be put in.</p><p>Note type: <b>{{noteType}}</b></p>"
     }
   },
   "deckSpecific": {
@@ -21,9 +21,9 @@
       "default": "ja"
     }
   },
-  "skipExisting": {
-    "friendly": "Skip existing",
-    "description": "Skip cards that already have content in their audio field",
+  "appendAudio": {
+    "friendly": "Append to existing audio",
+    "description": "Appends the new audios to the existing value of the audio field",
     "default": true
   }
 }

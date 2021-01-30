@@ -63,6 +63,16 @@ class Config:
         config_dupe = copy.deepcopy(self.config)
         config_dupe.pop("noteTypeSpecific", None)
         config_dupe.pop("deckSpecific", None)
+        return config_dupe
+
+    def get_config_object(self, name) -> 'ConfigObject':
+        return ConfigObject(
+            name,
+            self.template[name]["friendly"],
+            self.template[name]["description"],
+            self.template[name].get("default", None) or None,
+            self.get_config_objects()[name]
+        )
 
     def get_deck_specific_config_object(self, name: str, deck_id: int) -> 'ConfigObject':
         for deck in self.config["deckSpecific"]:

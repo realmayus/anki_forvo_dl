@@ -89,8 +89,13 @@ def on_editor_btn_click(editor: Editor):
 
             def handle_close():
                 if dialog.selected_pronunciation is not None:
-                    editor.note.fields[
-                        get_field_id(audio_field, editor.note)] = "[sound:%s]" % dialog.selected_pronunciation.audio
+                    if config.get_config_object("appendAudio").value:
+                        editor.note.fields[
+                            get_field_id(audio_field, editor.note)] += "[sound:%s]" % dialog.selected_pronunciation.audio
+                    else:
+                        editor.note.fields[
+                            get_field_id(audio_field, editor.note)] = "[sound:%s]" % dialog.selected_pronunciation.audio
+
                     if not editor.addMode:
                         editor.note.flush()
                     editor.loadNote()

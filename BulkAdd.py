@@ -231,7 +231,10 @@ class Thread(QThread):
 
                 top: Pronunciation = results[len(results) - 1]  # get most upvoted pronunciation
                 top.download_pronunciation()  # download that
-                card.note()[audio_field] += "[sound:%s]" % top.audio  # set audio field content to the respective sound
+                if self.config.get_config_object("appendAudio").value:
+                    card.note()[audio_field] += "[sound:%s]" % top.audio  # set audio field content to the respective sound
+                else:
+                    card.note()[audio_field] = "[sound:%s]" % top.audio  # set audio field content to the respective sound
                 card.note().flush()  # flush the toilet
             except Exception as e:
                 # Save all raised exceptions in a list to retrieve them later in the FailedDownloadsDialog
