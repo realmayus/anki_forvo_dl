@@ -35,8 +35,9 @@ class PronunciationWidget(QWidget):
 
         word = QLabel(pronunciation.word)
         word_info_layout.addWidget(word)
-        word.setStyleSheet("font-size: 24px; font-weight: bold")
+        word.setStyleSheet("font-size: 24px; font-weight: bold; color: #000000;")
         more_info = QLabel("by " + pronunciation.user + " • " + str(pronunciation.votes) + " votes")
+        more_info.setStyleSheet("color: #000000;")
         word_info_layout.addWidget(more_info)
         word_info_layout.setContentsMargins(0, 15, 0, 15)
         layout.addLayout(word_info_layout)

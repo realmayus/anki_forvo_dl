@@ -242,7 +242,7 @@ class Thread(QThread):
                 self.failed.append(FailedDownload(reason=e, card=card))
             self.cnt += 1  # Increase count for progress bar
             self.change_value.emit(self.cnt)  # emit signal to update progress bar
-            self.msleep(100)  # sleep to give progress bar time to update
+            self.msleep(1500)  # sleep to give progress bar time to update
 
             self.mutex.unlock()
 
