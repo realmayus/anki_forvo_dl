@@ -43,7 +43,7 @@ def _handle_field_select(d, note_type_id, field_type, editor):
 
 def on_editor_btn_click(editor: Editor):
     deck_id = editor.card.did if editor.card is not None else editor.parentWindow.deckChooser.selectedId()
-    note_type_id = editor.card.mod if editor.card is not None else editor.mw.col.conf["curModel"]
+    note_type_id = editor.card.note().mid if editor.card is not None else editor.mw.col.conf["curModel"]
 
     search_field = config.get_note_type_specific_config_object("searchField", note_type_id)
     if search_field is None:
