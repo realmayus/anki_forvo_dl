@@ -14,6 +14,7 @@ from anki_forvo_dl.AddSingle import AddSingle
 from anki_forvo_dl.BulkAdd import BulkAdd
 from anki_forvo_dl.Config import Config, ConfigObject
 from anki_forvo_dl.ConfigManager import ConfigManager
+from anki_forvo_dl.Exceptions import NoResultsException
 from anki_forvo_dl.FieldSelector import FieldSelector
 from anki_forvo_dl.Forvo import Forvo
 from anki_forvo_dl.LanguageSelector import LanguageSelector
@@ -63,7 +64,7 @@ def on_editor_btn_click(editor: Editor):
     audio_field = audio_field.value
 
     if editor.note is None:
-        showInfo("Please enter a search term in the field '" + search_field + "' or focus the field you want to search for.\nYou can change the search field under Tools > anki_forvo_dl > Search field")
+        showInfo("Please enter a search term in the field '" + search_field + "'.")
         return
 
     if editor.note is not None and editor.note[search_field] is not None and len(editor.note[search_field]) != 0:
@@ -73,17 +74,21 @@ def on_editor_btn_click(editor: Editor):
         """If the search field is empty, use the content of the currently selected field"""
         query = editor.note.fields[editor.currentField]
     else:
-        showInfo("Please enter a search term in the field '" + search_field + "' or focus the field you want to search for.\nYou can change the search field under Tools > anki_forvo_dl > Search field")
+        showInfo("Please enter a search term in the field '" + search_field + "'.")
         return
 
     if deck_id is not None:
         def proceed(language):
-            results = Forvo(query, language, editor.mw) \
-                .load_search_query() \
-                .get_pronunciations() \
-                .download_pronunciations() \
-                .cleanup() \
-                .pronunciations
+            try:
+                results = Forvo(query, language, editor.mw) \
+                    .load_search_query() \
+                    .get_pronunciations() \
+                    .download_pronunciations() \
+                    .cleanup() \
+                    .pronunciations
+            except NoResultsException:
+                showInfo("No results found! :(")
+                return
 
             dialog = AddSingle(editor.parentWindow, pronunciations=results)
 

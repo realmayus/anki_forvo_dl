@@ -1,9 +1,7 @@
-import os
 from typing import List
 
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QWaitCondition, QMutex, pyqtSlot
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QProgressBar, \
-    QCheckBox
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QProgressBar
 from anki.cards import Card
 from aqt import AnkiQt
 from aqt.utils import showInfo
@@ -26,16 +24,16 @@ class BulkAdd(QDialog):
         self.selected_pronunciation: Pronunciation = None
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
-        self.description = "<h1>anki_forvo_dl</h1><p>anki-forvo-dl will download audio files for the selected cards based on the selected search field and put the audio in the selected audio field. You can change these fields by going to Tools > anki-forvo-dl > Preferences and selecting your deck.</p>"
+        self.description = "<h1>anki_forvo_dl</h1><p>anki-forvo-dl will download audio files for the selected cards based on the selected search field and put the audio in the selected audio field.</p><p>You can change these fields by going to the add-on's directory > user_files > config.json and changing the field names there.</p>"
         self.description_label = QLabel(text=self.description)
         self.description_label.setMinimumSize(self.sizeHint())
         self.description_label.setWordWrap(True)
         self.description_label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.description_label)
 
-        self.skipCheckbox = QCheckBox("Skip download for cards that already have\n content in the audio field")
-        self.skipCheckbox.setChecked(True)  # TODO read from Config
-        self.layout.addWidget(self.skipCheckbox)
+        # self.skipCheckbox = QCheckBox("Skip download for cards that already have\n content in the audio field")
+        # self.skipCheckbox.setChecked(True)  # TODO read from Config
+        # self.layout.addWidget(self.skipCheckbox)
 
         self.btn = QPushButton("Start Downloads")
         self.btn.clicked.connect(self.start_downloads_wrapper)
@@ -65,9 +63,12 @@ class BulkAdd(QDialog):
 
     def review_downloads(self):
         """Opens the FailedDownloadsDialog after downloads are completed"""
-        dialog = FailedDownloadsDialog(self.parent, self.th.failed, self.mw, self.config)
-        dialog.finished.connect(lambda: self.close())  # close this window when the FailedDownloadsDialog is closed
-        dialog.show()
+        if len(self.th.failed) > 0:
+            dialog = FailedDownloadsDialog(self.parent, self.th.failed, self.mw, self.config)
+            dialog.finished.connect(lambda: self.close())  # close this window when the FailedDownloadsDialog is closed
+            dialog.show()
+        else:
+            showInfo("All downloads finished successfully!")
 
     @pyqtSlot()
     def slot_clicked_button(self):
@@ -171,8 +172,7 @@ class BulkAdd(QDialog):
 
     def start_downloads(self):
         """FINALLY start the downloads"""
-        self.btn.setVisible(False)                # }
-        self.skipCheckbox.setEnabled(False)       # }--- disable some controls and make others visible
+        self.btn.setVisible(False)                # }--- disable some controls and make others visible
         self.pb.setVisible(True)                  # }
         self.progress.setVisible(True)            # }
         self.adjustSize()   # readjust size of window, we just "added" some controls

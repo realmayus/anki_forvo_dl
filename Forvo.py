@@ -51,10 +51,10 @@ class Pronunciation:
 
 
 class Forvo:
-    def __init__(self, word, language, mw):
+    def __init__(self, word: str, language: str, mw):
         self.html: BeautifulSoup
         self.language = language
-        self.word = word
+        self.word = word.strip()  # trim whitespace
         self.pronunciations: List[Pronunciation] = []
         self.mw = mw
 
