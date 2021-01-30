@@ -7,6 +7,8 @@ The add-on has two modes:
 <li>A bulk-add mode</li>
 </ul>
 
+**Forvo offers their service for free, so please be kind and don't use the bulk-add feature regularly to avoid that Forvo's servers get nuked. There is a delay of a second between the downloads to protect them. Try to download the audios as you create them, using the blue Forvo button in the editor.**
+
 ## Download
 You can download the plugin using anki. Open the add-on manager by clicking Tools > Add-ons and press "Get Add-ons...".
 
