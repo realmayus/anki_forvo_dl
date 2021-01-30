@@ -1,7 +1,5 @@
 # anki-forvo-dl
-A plugin for the flashcard program anki that allows you to (bulk) add Forvo.com pronunciations to your flashcards!
-
-## This plugin is so beta that you're not even supposed to look at its code yet!
+An add-on for the flashcard program Anki that allows you to (bulk-) add Forvo.com pronunciations to your flashcards!
 
 ## How to install
 * Download the latest release from [here](https://github.com/realmayus/anki_forvo_dl/releases/latest) (click on Assets > Source code (zip))
