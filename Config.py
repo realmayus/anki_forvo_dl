@@ -84,7 +84,7 @@ class Config:
                         self.template["deckSpecific"][name]["friendly"],
                         self.template["deckSpecific"][name]["description"],
                         self.template["deckSpecific"][name].get("default", None) or None,
-                        deck[name],  # items()[0] is "id", items()[1] is name of option
+                        deck[name],
                         deck=deck_id
                     )
                 else:
@@ -101,7 +101,7 @@ class Config:
                         self.template["noteTypeSpecific"][name]["friendly"],
                         self.template["noteTypeSpecific"][name]["description"],
                         self.template["noteTypeSpecific"][name].get("default", None) or None,
-                        note_type[name],  # items()[0] is "id", items()[1] is name of option
+                        note_type[name],
                         note_type=note_type_id
                     )
                 else:
