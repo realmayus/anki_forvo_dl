@@ -317,7 +317,7 @@ class Thread(QThread):
             except Exception as e:
                 # Save all raised exceptions in a list to retrieve them later in the FailedDownloadsDialog
                 self.failed.append(FailedDownload(reason=e, card=card))
-                self.log.emit("[Error] Card with 1. Field %s failed due to Exception: %s" % (card.note().fields[0], str(e.)))
+                self.log.emit("[Error] Card with 1. Field %s failed due to Exception: %s" % (card.note().fields[0], str(e)))
 
             self.done_cards.append(card)
             self.cnt += 1  # Increase count for progress bar
