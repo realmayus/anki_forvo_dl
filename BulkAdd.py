@@ -6,13 +6,13 @@ from anki.cards import Card
 from aqt import AnkiQt
 from aqt.utils import showInfo
 
-from anki_forvo_dl.Config import Config, ConfigObject
-from anki_forvo_dl.Exceptions import FieldNotFoundException
-from anki_forvo_dl.FailedDownloadsDialog import FailedDownloadsDialog
-from anki_forvo_dl.FieldSelector import FieldSelector
-from anki_forvo_dl.Forvo import Pronunciation, Forvo
-from anki_forvo_dl.LanguageSelector import LanguageSelector
-from anki_forvo_dl.Util import FailedDownload
+from .Config import Config, ConfigObject
+from .Exceptions import FieldNotFoundException
+from .FailedDownloadsDialog import FailedDownloadsDialog
+from .FieldSelector import FieldSelector
+from .Forvo import Pronunciation, Forvo
+from .LanguageSelector import LanguageSelector
+from .Util import FailedDownload
 
 
 class BulkAdd(QDialog):
@@ -24,7 +24,7 @@ class BulkAdd(QDialog):
         self.selected_pronunciation: Pronunciation = None
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
-        self.description = "<h1>anki_forvo_dl</h1><p>anki-forvo-dl will download audio files for the selected cards based on the selected search field and put the audio in the selected audio field.</p><p>You can change these fields by going to the add-on's directory > user_files > config.json and changing the field names there.</p>"
+        self.description = "<h1>anki-forvo-dl</h1><p>anki-forvo-dl will download audio files for the selected cards based on the selected search field and put the audio in the selected audio field.</p><p>You can change these fields by going to the add-on's directory > user_files > config.json and changing the field names there.</p>"
         self.description_label = QLabel(text=self.description)
         self.description_label.setMinimumSize(self.sizeHint())
         self.description_label.setWordWrap(True)
@@ -69,6 +69,7 @@ class BulkAdd(QDialog):
             dialog.show()
         else:
             showInfo("All downloads finished successfully!")
+            self.close()
 
     @pyqtSlot()
     def slot_clicked_button(self):

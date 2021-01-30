@@ -11,7 +11,7 @@ from urllib.error import HTTPError
 from aqt import AnkiQt
 from bs4 import BeautifulSoup, Tag
 
-from anki_forvo_dl.Exceptions import NoResultsException
+from .Exceptions import NoResultsException
 
 search_url = "https://forvo.com/word/"
 download_url = "https://forvo.com/download/mp3/"
@@ -32,7 +32,7 @@ class Pronunciation:
 
     def download_pronunciation(self):
         """Downloads the pronunciation using the pronunciation url in the pronunciation object, adds the audio to Anki's DB and stores the media id in the pronunciation object."""
-        from anki_forvo_dl import temp_dir
+        from . import temp_dir
         req = urllib.request.Request(self.download_url)
         dl_path = os.path.join(temp_dir, "pronunciation_" + self.language + "_" + self.word + (
             ".ogg" if self.is_ogg else ".mp3"))
@@ -143,7 +143,7 @@ class Forvo:
 
     def cleanup(self):
         """Removes any files in the /temp directory."""
-        from anki_forvo_dl import temp_dir
+        from . import temp_dir
         for f in os.listdir(temp_dir):
             os.remove(os.path.join(temp_dir, f))
         return self

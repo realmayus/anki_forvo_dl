@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QLabel, QVBoxLayout, QDialog, QRadioButton, QPushBut
 from anki.models import NoteType
 from aqt import AnkiQt
 
-from anki_forvo_dl import Config
+from . import Config
 
 
 class FieldSelector(QDialog):

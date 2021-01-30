@@ -7,8 +7,8 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QListWidget, QListWidg
 from anki.cards import Card
 from aqt.utils import showInfo
 
-from anki_forvo_dl import Exceptions, Config
-from anki_forvo_dl.Util import FailedDownload
+from . import Exceptions, Config
+from .Util import FailedDownload
 
 
 class FailedListWidgetItemWidget(QWidget):

@@ -9,16 +9,16 @@ from aqt.editor import Editor
 from aqt.qt import *
 from aqt.utils import showInfo
 
-from anki_forvo_dl.About import About
-from anki_forvo_dl.AddSingle import AddSingle
-from anki_forvo_dl.BulkAdd import BulkAdd
-from anki_forvo_dl.Config import Config, ConfigObject
-from anki_forvo_dl.ConfigManager import ConfigManager
-from anki_forvo_dl.Exceptions import NoResultsException
-from anki_forvo_dl.FieldSelector import FieldSelector
-from anki_forvo_dl.Forvo import Forvo
-from anki_forvo_dl.LanguageSelector import LanguageSelector
-from anki_forvo_dl.Util import get_field_id
+from .About import About
+from .AddSingle import AddSingle
+from .BulkAdd import BulkAdd
+from .Config import Config, ConfigObject
+from .ConfigManager import ConfigManager
+from .Exceptions import NoResultsException
+from .FieldSelector import FieldSelector
+from .Forvo import Forvo
+from .LanguageSelector import LanguageSelector
+from .Util import get_field_id
 
 """Paths to directories get determined based on __file__"""
 asset_dir = os.path.join(pathlib.Path(__file__).parent.absolute(), "assets")

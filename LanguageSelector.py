@@ -3,13 +3,12 @@ import os
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QComboBox, QPushButton
-from aqt.utils import showInfo
 
 
 class LanguageSelector(QDialog):
 
     def __init__(self, parent, deck_name):
-        from anki_forvo_dl import asset_dir
+        from . import asset_dir
         super().__init__(parent)
         self.setWindowTitle("Select Language")
         self.setFixedWidth(400)
