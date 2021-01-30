@@ -5,6 +5,7 @@ from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QListWidget, QListWidgetItem, QAbstractScrollArea, \
     QPushButton, QHBoxLayout, QWidget, QAbstractItemView
 from anki.cards import Card
+from aqt.browser import Browser
 from aqt.utils import showInfo
 
 from . import Exceptions, Config
@@ -12,18 +13,22 @@ from .Util import FailedDownload
 
 
 class FailedListWidgetItemWidget(QWidget):
-    def __init__(self, label: str, card: Card, mw, parent, specific_info: str = None):
+    def __init__(self, label: str, card: Card, mw, browser: Browser, specific_info: str = None):
         super().__init__()
         self.mw = mw
         self.card = card
-        self.parent = parent
         hbox = QHBoxLayout()
         hbox.addWidget(QLabel(label))
         hbox.addStretch()
         more_info = QLabel(specific_info)
         hbox.addWidget(more_info)
         card_btn = QPushButton("Card")
-        card_btn.clicked.connect(lambda: showInfo("WIP"))
+
+        def show_card():
+            browser.form.searchEdit.lineEdit().setText("cid:" + str(card.id))
+            browser.onSearchActivated()
+
+        card_btn.clicked.connect(show_card)
         forvo_btn = QPushButton("Forvo")
         forvo_btn.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://forvo.com/search/" + label)))
         hbox.addWidget(card_btn)
