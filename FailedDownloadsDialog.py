@@ -59,7 +59,8 @@ class FailedDownloadsDialog(QDialog):
     def get_reasons(self):
         reasons = {}
         for fail in self.failed:
-            showInfo(''.join(traceback.format_tb(fail.reason.__traceback__)))
+            # Show traceback for debugging:
+            # showInfo(''.join(traceback.format_tb(fail.reason.__traceback__)))
             error_instance = next((e for e in Exceptions.all_errors if isinstance(fail.reason, e)), None)
 
             if error_instance is not None:
