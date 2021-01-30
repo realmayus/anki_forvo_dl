@@ -20,13 +20,17 @@ class BulkAdd(QDialog):
     def __init__(self, parent, cards: List[Card], mw, config: Config):
         super().__init__(parent)
         self.config: Config = config
-        self.setFixedWidth(400)
+        self.cards = cards
+        self.setFixedWidth(500)
+        self.setFixedHeight(300)
         self.selected_pronunciation: Pronunciation = None
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.description = "<h1>anki-forvo-dl</h1><p>anki-forvo-dl will download audio files for the selected cards based on the selected search field and put the audio in the selected audio field.</p><p>You can change these fields by going to the add-on's directory > user_files > config.json and changing the field names there.</p>"
+        self.description += "<p>Forvo offers their service for free, so please be kind and <b>don't use the bulk-add feature regularly to avoid that Forvo's servers get nuked</b>. %s cards mean %s requests to their servers. There is a delay of a second between the downloads to protect them. Try to download the audios as you create them.</p>" % (str(len(self.cards)), str(len(self.cards) * 2))
         self.description_label = QLabel(text=self.description)
         self.description_label.setMinimumSize(self.sizeHint())
+        self.description_label.setStyleSheet("margin: 0; padding: 0;")
         self.description_label.setWordWrap(True)
         self.description_label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.description_label)
@@ -56,10 +60,9 @@ class BulkAdd(QDialog):
         self.th.change_value.connect(self.progress.setValue)
         self.th.finished.connect(self.review_downloads)
 
-        self.setMaximumHeight(1000)  # restrict maximum height to make use of the listview's scrollbar
-        self.cards = cards
         self.parent = parent
         self.mw: AnkiQt = mw
+        self.adjustSize()
 
     def review_downloads(self):
         """Opens the FailedDownloadsDialog after downloads are completed"""
@@ -242,7 +245,7 @@ class Thread(QThread):
                 self.failed.append(FailedDownload(reason=e, card=card))
             self.cnt += 1  # Increase count for progress bar
             self.change_value.emit(self.cnt)  # emit signal to update progress bar
-            self.msleep(500)  # sleep to give progress bar time to update
+            self.msleep(1000)  # sleep to give progress bar time to update
 
             self.mutex.unlock()
 
