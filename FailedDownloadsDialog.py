@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QListWidget, QListWidg
     QPushButton, QHBoxLayout, QWidget, QAbstractItemView
 from anki.cards import Card
 from aqt.browser import Browser
-from aqt.utils import showInfo
 
 from . import Exceptions, Config
 from .Util import FailedDownload
@@ -34,11 +33,12 @@ class FailedListWidgetItemWidget(QWidget):
         hbox.addWidget(card_btn)
         hbox.addWidget(forvo_btn)
         hbox.setContentsMargins(10, 0, 0, 0)
-        self.setMinimumHeight(40)
         vbox = QVBoxLayout()
         vbox.addLayout(hbox)
-        vbox.setContentsMargins(0, 0, 0, 0)
+        vbox.setContentsMargins(0, 10, 10, 10)
         self.setLayout(vbox)
+        self.setMinimumSize(vbox.sizeHint())
+        self.adjustSize()
 
 
 class FailedDownloadsDialog(QDialog):
