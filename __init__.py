@@ -14,6 +14,7 @@ from anki_forvo_dl.AddSingle import AddSingle
 from anki_forvo_dl.BulkAdd import BulkAdd
 from anki_forvo_dl.Config import Config, ConfigObject
 from anki_forvo_dl.ConfigManager import ConfigManager
+from anki_forvo_dl.FieldSelector import FieldSelector
 from anki_forvo_dl.Forvo import Forvo
 from anki_forvo_dl.LanguageSelector import LanguageSelector
 from anki_forvo_dl.Util import get_field_id
@@ -31,12 +32,35 @@ for path in [temp_dir, user_files_dir]:
 config = Config(os.path.join(user_files_dir, "config.json"), os.path.join(asset_dir, "config.template.json")).load_config().load_template().ensure_options()
 
 
+def _handle_field_select(d, note_type_id, field_type, editor):
+    if d.selected_field is not None:
+        config.set_note_type_specific_config_object(
+            ConfigObject(name=field_type, value=d.selected_field, note_type=note_type_id))
+        on_editor_btn_click(editor=editor)
+    else:
+        showInfo("Cancelled download because no language was selected.")
+
+
 def on_editor_btn_click(editor: Editor):
     deck_id = editor.card.did if editor.card is not None else editor.parentWindow.deckChooser.selectedId()
     note_type_id = editor.card.model if editor.card is not None else editor.mw.col.conf["curModel"]
 
-    search_field = config.get_note_type_specific_config_object("searchField", note_type_id).value
-    audio_field = config.get_note_type_specific_config_object("audioField", note_type_id).value
+    search_field = config.get_note_type_specific_config_object("searchField", note_type_id)
+    if search_field is None:
+        d = FieldSelector(editor.parentWindow, editor.mw, note_type_id, "searchField", config)
+        d.finished.connect(lambda: _handle_field_select(d, note_type_id, "searchField", editor))
+        d.show()
+        return
+
+    audio_field = config.get_note_type_specific_config_object("audioField", note_type_id)
+    if audio_field is None:
+        d = FieldSelector(editor.parentWindow, editor.mw, note_type_id, "audioField", config)
+        d.finished.connect(lambda: _handle_field_select(d, note_type_id, "audioField", editor))
+        d.show()
+        return
+
+    search_field = search_field.value
+    audio_field = audio_field.value
 
     if editor.note is None:
         showInfo("Please enter a search term in the field '" + search_field + "' or focus the field you want to search for.\nYou can change the search field under Tools > anki_forvo_dl > Search field")
