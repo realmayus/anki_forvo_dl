@@ -9,7 +9,6 @@ from typing import List, Union
 from urllib.error import HTTPError
 
 from aqt import AnkiQt
-from aqt.utils import tooltip
 from bs4 import BeautifulSoup, Tag
 
 from anki_forvo_dl.Exceptions import NoResultsException

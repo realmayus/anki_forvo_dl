@@ -1,3 +1,4 @@
+import pathlib
 from typing import List
 
 from anki.decks import DeckManager
@@ -18,9 +19,9 @@ from anki_forvo_dl.LanguageSelector import LanguageSelector
 from anki_forvo_dl.Util import get_field_id
 
 """Paths to directories get determined based on __file__"""
-asset_dir = os.path.join(os.readlink(os.path.dirname(__file__)), "assets")
-temp_dir = os.path.join(os.readlink(os.path.dirname(__file__)), "temp")
-user_files_dir = os.path.join(os.readlink(os.path.dirname(__file__)), "user_files")
+asset_dir = os.path.join(pathlib.Path(__file__).parent.absolute(), "assets")
+temp_dir = os.path.join(pathlib.Path(__file__).parent.absolute(), "temp")
+user_files_dir = os.path.join(pathlib.Path(__file__).parent.absolute(), "user_files")
 
 """Ensure directories (create if not existing)"""
 for path in [temp_dir, user_files_dir]:
@@ -33,8 +34,6 @@ config = Config(os.path.join(user_files_dir, "config.json"), os.path.join(asset_
 def on_editor_btn_click(editor: Editor):
     deck_id = editor.card.did if editor.card is not None else editor.parentWindow.deckChooser.selectedId()
     note_type_id = editor.card.model if editor.card is not None else editor.mw.col.conf["curModel"]
-
-    showInfo(str(note_type_id) + ", " + str(deck_id))
 
     search_field = config.get_note_type_specific_config_object("searchField", note_type_id).value
     audio_field = config.get_note_type_specific_config_object("audioField", note_type_id).value
@@ -78,7 +77,7 @@ def on_editor_btn_click(editor: Editor):
         config_lang = config.get_deck_specific_config_object("language", deck_id)
 
         if config_lang is not None:
-            proceed(config_lang)
+            proceed(config_lang.value)
         else:
             d = LanguageSelector(editor.parentWindow, mw.col.decks.get(deck_id)["name"])
 
