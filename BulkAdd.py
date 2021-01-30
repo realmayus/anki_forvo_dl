@@ -1,3 +1,4 @@
+import os
 from typing import List
 
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QWaitCondition, QMutex, pyqtSlot
@@ -225,9 +226,10 @@ class Thread(QThread):
                 results = Forvo(query, language, self.mw) \
                     .load_search_query() \
                     .get_pronunciations().pronunciations
+
                 results.sort(key=lambda result: result.votes)  # sort by votes
 
-                top: Pronunciation = results[0]  # get most upvoted pronunciation
+                top: Pronunciation = results[len(results) - 1]  # get most upvoted pronunciation
                 top.download_pronunciation()  # download that
                 card.note()[audio_field] += "[sound:%s]" % top.audio  # set audio field content to the respective sound
                 card.note().flush()  # flush the toilet

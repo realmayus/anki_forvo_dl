@@ -99,7 +99,7 @@ class Forvo:
             if len(vote_count_inner_span) == 0:
                 vote_count = 0
             else:
-                vote_count = int(str(re.findall(r"(\d+).*", vote_count_inner_span[0].contents[0])[0]))
+                vote_count = int(str(re.findall(r"(-?\d+).*", vote_count_inner_span[0].contents[0])[0]))
 
             pronunciation_dls = re.findall(r"Play\(\d+,'.+','.+',\w+,'([^']+)", pronunciation.find_all(id=re.compile(r"play_\d+"))[0].attrs["onclick"])
 
@@ -113,9 +113,14 @@ class Forvo:
                 pronunciation_dl = pronunciation_dls[0]
                 dl_url = "https://audio00.forvo.com/audios/mp3/" + str(base64.b64decode(pronunciation_dl), "utf-8")
 
+            username = pronunciation.find_all(class_="ofLink", recursive=False)
+            if len(username) == 0:
+                username = re.findall("Pronunciation by(.*)", pronunciation.contents[2], re.S)[0].strip()
+            else:
+                username = username[0].contents[0]
             self.pronunciations.append(
                 Pronunciation(self.language,
-                              pronunciation.find_all(class_="ofLink")[0].contents[0],
+                              username,
                               pronunciation.find_all(class_="from")[0].contents[0],
                               int(pronunciation.find_all(class_="more")[0].find_all(class_="main_actions")[0].find_all(
                                   class_="share")[0].attrs["data-id"]),
