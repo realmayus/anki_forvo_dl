@@ -1,13 +1,13 @@
 from typing import List
 
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QWaitCondition, QMutex, pyqtSlot
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QProgressBar
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QProgressBar, QHBoxLayout, QScrollArea, QWidget
 from anki.cards import Card
 from aqt import AnkiQt
 from aqt.utils import showInfo
 
 from .Config import Config, ConfigObject
-from .Exceptions import FieldNotFoundException
+from .Exceptions import FieldNotFoundException, DownloadCancelledException
 from .FailedDownloadsDialog import FailedDownloadsDialog
 from .FieldSelector import FieldSelector
 from .Forvo import Pronunciation, Forvo
@@ -25,11 +25,15 @@ class BulkAdd(QDialog):
         self.setFixedHeight(350)
         self.selected_pronunciation: Pronunciation = None
         self.layout = QVBoxLayout()
-        self.setLayout(self.layout)
+        self.hlayout = QHBoxLayout()
+        self.hlayout.setContentsMargins(10, 10, 10, 10)
+
+        self.hlayout.addLayout(self.layout)
+        self.setLayout(self.hlayout)
         self.description = "<h1>anki-forvo-dl</h1><p>anki-forvo-dl will download audio files for the selected cards based on the selected search field and put the audio in the selected audio field.</p><p>You can change these fields by going to the add-on's directory > user_files > config.json and changing the field names there.</p>"
         self.description += "<p>Forvo offers their service for free, so please be kind and <b>don't use the bulk-add feature regularly to avoid that Forvo's servers get nuked</b>. %s cards mean %s requests to their servers. There is a delay of a second between the downloads to protect them. Try to download the audio files as you create your cards, using the blue Forvo button in the editor.</p>" % (str(len(self.cards)), str(len(self.cards) * 2))
         self.description_label = QLabel(text=self.description)
-        self.description_label.setMinimumSize(self.sizeHint())
+        self.description_label.setMinimumWidth(450)
         self.description_label.setStyleSheet("margin: 0; padding: 0;")
         self.description_label.setWordWrap(True)
         self.description_label.setAlignment(Qt.AlignCenter)
@@ -45,10 +49,24 @@ class BulkAdd(QDialog):
 
         self.th = Thread(cards, mw, config)  # Initialize Thread
 
-        self.pb = QPushButton("Pause")
-        self.pb.setVisible(False)
-        self.pb.clicked.connect(self.slot_clicked_button)
-        self.layout.addWidget(self.pb)
+        self.btn_box = QHBoxLayout()
+
+        self.pause_button = QPushButton("Pause")
+        self.pause_button.setVisible(False)
+        self.pause_button.clicked.connect(self.slot_pause_button)
+        self.btn_box.addWidget(self.pause_button)
+
+        self.cancel_button = QPushButton("Cancel")
+        self.cancel_button.setVisible(False)
+        self.cancel_button.clicked.connect(self.handle_cancel_click)
+        self.btn_box.addWidget(self.cancel_button)
+
+        self.toggle_log_button = QPushButton("Toggle Log")
+        self.toggle_log_button.setVisible(False)
+        self.toggle_log_button.clicked.connect(self.handle_toggle_log_click)
+        self.btn_box.addWidget(self.toggle_log_button)
+
+        self.layout.addLayout(self.btn_box)
 
         self.progress = QProgressBar()
         self.progress.setMaximum(len(cards))
@@ -58,11 +76,29 @@ class BulkAdd(QDialog):
 
         # connect thread's signals to handler functions
         self.th.change_value.connect(self.progress.setValue)
+        self.th.log.connect(self.add_log_msg)
         self.th.finished.connect(self.review_downloads)
 
         self.parent = parent
         self.mw: AnkiQt = mw
         self.adjustSize()
+        self.log: List[str] = []
+
+        scroll_widget = QWidget()
+        scroll_widget.setStyleSheet("background-color: #fff;")
+        self.scroll_area = QScrollArea()
+        self.scroll_vbox = QVBoxLayout(scroll_widget)
+
+        self.scroll_area.setWidget(scroll_widget)
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setVisible(False)
+        self.description_label.adjustSize()
+
+    def add_log_msg(self, msg: str):
+        self.log.append(msg)
+        label = QLabel("<code>%s</code>" % msg)
+        label.setStyleSheet("color: #000;")
+        self.scroll_vbox.addWidget(label)
 
     def review_downloads(self):
         """Opens the FailedDownloadsDialog after downloads are completed"""
@@ -71,14 +107,34 @@ class BulkAdd(QDialog):
             dialog.finished.connect(lambda: self.close())  # close this window when the FailedDownloadsDialog is closed
             dialog.show()
         else:
-            showInfo("All downloads finished successfully!")
-            self.close()
+            if self.th.is_cancelled:
+                for card in self.th.cards:
+                    if card not in self.th.done_cards:
+                        self.th.failed.append(FailedDownload(card, DownloadCancelledException()))
+                dialog = FailedDownloadsDialog(self.parent, self.th.failed, self.mw, self.config)
+                dialog.finished.connect(
+                    lambda: self.close())  # close this window when the FailedDownloadsDialog is closed
+                dialog.show()
+            else:
+                showInfo("All downloads finished successfully!")
+                self.close()
 
     @pyqtSlot()
-    def slot_clicked_button(self):
+    def slot_pause_button(self):
         """Pause button"""
         self.th.toggle_status()
-        self.pb.setText({True: "Pause", False: "Resume"}[self.th.status])
+        self.pause_button.setText({True: "Pause", False: "Resume"}[self.th.status])
+
+    def handle_cancel_click(self):
+        """Cancel button"""
+        self.th.is_cancelled = True
+        self.th._status = True  # allow thread to continue working so that it hits the if-statement that will cancel the thread
+
+    @pyqtSlot()
+    def handle_toggle_log_click(self):
+        """Toggle log button"""
+        self.scroll_area.setVisible(not self.scroll_area.isVisible())
+        self.adjustSize()
 
     def select_lang(self, missing):
         """Recursive function that addresses all cards' decks that are missing a language"""
@@ -177,7 +233,9 @@ class BulkAdd(QDialog):
     def start_downloads(self):
         """FINALLY start the downloads"""
         self.btn.setVisible(False)                # }--- disable some controls and make others visible
-        self.pb.setVisible(True)                  # }
+        self.pause_button.setVisible(True)                  # }
+        self.cancel_button.setVisible(True)                  # }
+        self.toggle_log_button.setVisible(True)                  # }
         self.progress.setVisible(True)            # }
         self.adjustSize()   # readjust size of window, we just "added" some controls
         self.th.start()  # actually start the download thread
@@ -191,6 +249,10 @@ class Thread(QThread):
     """The downloading is handled in a separate thread in order for the progress bar and the pause button to work"""
     change_value = pyqtSignal(int)
     done = pyqtSignal(int)
+    log = pyqtSignal(str)
+    is_cancelled = False
+    done_cards = []
+
 
     def __init__(self, cards, mw, config):
         QThread.__init__(self)
@@ -208,9 +270,13 @@ class Thread(QThread):
 
     def run(self):
         card: Card
+
         for card in self.cards:
             """Go through all cards that are selected in the editor"""
             self.mutex.lock()
+            if self.is_cancelled:
+                Forvo.cleanup(None)
+                return
             if not self._status:  # If download is paused, wait
                 self.cond.wait(self.mutex)
             try:  # use try to avoid stopping the entire thread because of a single exception
@@ -222,9 +288,11 @@ class Thread(QThread):
                     raise FieldNotFoundException(query_field)
 
                 query = card.note()[query_field]  # Get query string from card's note using field name
+                language = self.config.get_deck_specific_config_object("language", card.did).value
+
+                self.log.emit("[Next Card] Query: %s; Language: %s" % (query, language))
 
                 # Get language from config for the card's deck
-                language = self.config.get_deck_specific_config_object("language", card.did).value
 
                 # Get the results
                 results = Forvo(query, language, self.mw) \
@@ -234,15 +302,24 @@ class Thread(QThread):
                 results.sort(key=lambda result: result.votes)  # sort by votes
 
                 top: Pronunciation = results[len(results) - 1]  # get most upvoted pronunciation
+                self.log.emit("Selected pronunciation by %s with %s votes" % (top.user, str(top.votes)))
                 top.download_pronunciation()  # download that
+                self.log.emit("Downloaded pronunciation")
                 if self.config.get_config_object("appendAudio").value:
                     card.note()[audio_field] += "[sound:%s]" % top.audio  # set audio field content to the respective sound
+                    self.log.emit("Appended sound string to field content")
                 else:
                     card.note()[audio_field] = "[sound:%s]" % top.audio  # set audio field content to the respective sound
+                    self.log.emit("Placed sound string in field")
+
                 card.note().flush()  # flush the toilet
+                self.log.emit("Saved note")
             except Exception as e:
                 # Save all raised exceptions in a list to retrieve them later in the FailedDownloadsDialog
                 self.failed.append(FailedDownload(reason=e, card=card))
+                self.log.emit("[Error] Card with 1. Field %s failed due to Exception: %s" % (card.note().fields[0], str(e.)))
+
+            self.done_cards.append(card)
             self.cnt += 1  # Increase count for progress bar
             self.change_value.emit(self.cnt)  # emit signal to update progress bar
             self.msleep(1000)  # sleep to give progress bar time to update

@@ -12,5 +12,9 @@ class FieldNotFoundException(Exception):
         self.specific_info = "'%s'" % field_name
 
 
+class DownloadCancelledException(Exception):
+    friendly = "Download cancelled"
+    info = "These pronunciations couldn't be downloaded because the download was cancelled."
+
 
 all_errors = [NoResultsException, FieldNotFoundException]
