@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt, QThread, pyqtSignal, QWaitCondition, QMutex, pyqtSl
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QProgressBar, QHBoxLayout, QScrollArea, QWidget
 from anki.cards import Card
 from aqt import AnkiQt
-from aqt.utils import showInfo
+from aqt.utils import showInfo, askUser
 
 from .Config import Config, ConfigObject
 from .Exceptions import FieldNotFoundException, DownloadCancelledException
@@ -171,6 +171,10 @@ class BulkAdd(QDialog):
 
     def start_downloads_wrapper(self):
         """Starts the whole procedure that involves ensuring fields and ensuring languages"""
+        if len(self.cards) > 350:
+            if not askUser(title="Disclaimer", text="It has been reported that Forvo bans IPs that are downloading too many audios. You have selected %s cards, resulting in %s requests to the server. <b>Please consider to spread your downloads over a few days to avoid getting IP-banned by Forvo.</b>\nYou are responsible for what you download with this tool. Do you really want to continue?" % (str(len(self.cards)), str(len(self.cards) * 2))):
+                self.close()
+                return
         self.ensure_fields()
 
     def select_field(self, missing_ids: List[int], field_type: str):
@@ -273,7 +277,7 @@ class Thread(QThread):
 
         for card in self.cards:
             """Go through all cards that are selected in the editor"""
-            self.mutex.lock()
+            # self.mutex.lock()
             if self.is_cancelled:
                 Forvo.cleanup(None)
                 return
@@ -324,7 +328,7 @@ class Thread(QThread):
             self.change_value.emit(self.cnt)  # emit signal to update progress bar
             self.msleep(1000)  # sleep to give progress bar time to update
 
-            self.mutex.unlock()
+            # self.mutex.unlock()
 
         Forvo.cleanup(None)  # cleanup files in temp directory (None is passed as the self parameter here)
 

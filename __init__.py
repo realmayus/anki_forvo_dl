@@ -39,12 +39,12 @@ def _handle_field_select(d, note_type_id, field_type, editor):
             ConfigObject(name=field_type, value=d.selected_field, note_type=note_type_id))
         on_editor_btn_click(editor=editor)
     else:
-        showInfo("Cancelled download because no language was selected.")
+        showInfo("Cancelled download because fields weren't selected.")
 
 
 def on_editor_btn_click(editor: Editor):
     deck_id = editor.card.did if editor.card is not None else editor.parentWindow.deckChooser.selectedId()
-    note_type_id = editor.card.note().mid if editor.card is not None else editor.mw.col.conf["curModel"]
+    note_type_id = editor.card.note().mid if editor.card is not None else editor.mw.col.models.current()["id"]
 
     search_field = config.get_note_type_specific_config_object("searchField", note_type_id)
     if search_field is None:
@@ -83,8 +83,6 @@ def on_editor_btn_click(editor: Editor):
                 results = Forvo(query, language, editor.mw) \
                     .load_search_query() \
                     .get_pronunciations() \
-                    .download_pronunciations() \
-                    .cleanup() \
                     .pronunciations
             except NoResultsException:
                 showInfo("No results found! :(")

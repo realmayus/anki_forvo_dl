@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
-from .Forvo import Pronunciation
+from .Forvo import Pronunciation, Forvo
 from .Util import CustomScrollbar
 
 
@@ -25,7 +25,13 @@ class PronunciationWidget(QWidget):
         btn.setFixedHeight(40)
         btn.setIcon(QIcon(os.path.join(asset_dir, "play_button.png")))
         btn.setIconSize(QSize(40, 40))
-        btn.clicked.connect(lambda: anki.sound.play(pronunciation.audio))
+
+        def play_audio():
+            if pronunciation.audio is None:
+                pronunciation.download_pronunciation()  # Download audio on demand
+            anki.sound.play(pronunciation.audio)
+
+        btn.clicked.connect(play_audio)
 
         layout.addWidget(btn)
 
@@ -102,3 +108,8 @@ class AddSingle(QDialog):
     def select_pronunciation(self, pronunciation: Pronunciation):
         self.selected_pronunciation = pronunciation
         self.close()
+
+    def closeEvent(self, event):
+        """Clean up before exit"""
+        Forvo.cleanup(None)
+        event.accept()
