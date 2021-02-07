@@ -25,5 +25,10 @@
     "friendly": "Append to existing audio",
     "description": "Appends the new audios to the existing value of the audio field",
     "default": true
+  },
+  "playAudioAfterSingleAddAutomaticSelection": {
+    "friendly": "Play audio after automatic selection (single add)",
+    "description": "Play the audio that was selected automatically when the shift key was held down when pressing the blue forvo button in the editor",
+    "default": true
   }
 }

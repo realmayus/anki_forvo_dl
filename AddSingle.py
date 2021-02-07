@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
-from .Forvo import Pronunciation, Forvo
+from .Forvo import Pronunciation
 from .Util import CustomScrollbar
 
 
@@ -73,7 +73,7 @@ class AddSingle(QDialog):
         self.selected_pronunciation: Pronunciation = None
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
-        self.description = "<h1>anki-forvo-dl</h1><p>Please select the audio you want to add.</p>"
+        self.description = "<h1>anki-forvo-dl</h1><p>Please select the audio you want to add.</p><p><small>You can hold down the shift key when clicking on the forvo <br/> button in the editor to automatically select the top pronunciation.</small></p>"
         self.description_label = QLabel(text=self.description)
         self.description_label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.description_label)
@@ -108,4 +108,3 @@ class AddSingle(QDialog):
     def select_pronunciation(self, pronunciation: Pronunciation):
         self.selected_pronunciation = pronunciation
         self.close()
-

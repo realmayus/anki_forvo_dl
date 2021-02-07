@@ -1,8 +1,7 @@
 import pathlib
 from typing import List
 
-from PyQt5 import QtGui
-from anki.decks import DeckManager
+import anki
 from anki.hooks import addHook
 from aqt import mw, gui_hooks
 from aqt.browser import Browser
@@ -44,6 +43,8 @@ def _handle_field_select(d, note_type_id, field_type, editor):
 
 
 def on_editor_btn_click(editor: Editor):
+    choose_automatically = False
+
     modifiers = QApplication.keyboardModifiers()
     if modifiers == Qt.ShiftModifier:
         """Choose top pronunciation automatically when shift key is held down"""
@@ -105,6 +106,13 @@ def on_editor_btn_click(editor: Editor):
                     editor.note.fields[
                         get_field_id(audio_field, editor.note)] = "[sound:%s]" % top.audio
 
+                if config.get_config_object("playAudioAfterSingleAddAutomaticSelection").value:  # play audio if desired
+                    anki.sound.play(top.audio)
+
+                if not editor.addMode:  # save
+                    editor.note.flush()
+                editor.loadNote()
+
             else:
                 dialog = AddSingle(editor.parentWindow, pronunciations=results)
 
@@ -121,8 +129,6 @@ def on_editor_btn_click(editor: Editor):
                         if not editor.addMode:
                             editor.note.flush()
                         editor.loadNote()
-                    else:
-                        showInfo("No pronunciation was selected.")
 
                 dialog.finished.connect(handle_close)
                 dialog.show()
@@ -157,7 +163,7 @@ def add_editor_button(buttons: List[str], editor: Editor):
     else:
         iconstr = "/_anki/imgs/{}.png".format(os.path.join(asset_dir, "icon.png"))
 
-    return buttons + ["<div style=\"float: right; margin: 0 3px\"><div style=\"display: flex; width: 50px; height: 25px; justify-content: center; align-items: center; padding: 0 5px; border-radius: 5px; background-color: #0094FF; color: #ffffff; font-size: 10px\" onclick=\"pycmd('forvo_dl');return false;\"><img style=\"margin-right: 5px; margin-left: 5px; height: 20px; width: 20px\" src=\"%s\"/><b style=\"user-select: none; margin-right: 7px\">Forvo</b></div></div>" % iconstr]
+    return buttons + ["<div title=\"Hold down shift to select top audio\" style=\"float: right; margin: 0 3px\"><div style=\"display: flex; width: 50px; height: 25px; justify-content: center; align-items: center; padding: 0 5px; border-radius: 5px; background-color: #0094FF; color: #ffffff; font-size: 10px\" onclick=\"pycmd('forvo_dl');return false;\"><img style=\"margin-right: 5px; margin-left: 5px; height: 20px; width: 20px\" src=\"%s\"/><b style=\"user-select: none; margin-right: 7px\">Forvo</b></div></div>" % iconstr]
 
 
 def add_browser_context_menu_entry(browser: Browser, m: QMenu):
@@ -178,19 +184,6 @@ def open_about_window():
     ConfigManager(mw).show()
 
 
-# def add_menubar_action():
-#     menu = QMenu("anki-forvo-dl")
-#     action_a = QAction("About", menu)
-#     action_s = QAction("Settings", menu)
-#     action_a.triggered.connect(open_about_window)
-#     action_s.triggered.connect(lambda: open_config_manager(mw))
-#     menu.addAction(action_a)
-#     menu.addAction(action_s)
-#     mw.form.menuTools.addAction(action_s)
-
-
 about = About(mw)
 addHook("setupEditorButtons", add_editor_button)
 gui_hooks.browser_will_show_context_menu.append(add_browser_context_menu_entry)
-
-# add_menubar_action()
