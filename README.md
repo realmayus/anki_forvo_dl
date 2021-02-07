@@ -21,6 +21,8 @@ The add-on's download page can be found here: https://ankiweb.net/shared/info/85
 When you add or edit a card, you will notice the blue Forvo button in the editor window. If you click that, anki-forvo-dl will ask you to select some fields and a language if not done already.
 Afterwards, you will be presented with a dialog window that shows you a list of all available pronunciations. If you click on the play button on the left of a pronunciation, you can listen to the audio. To select a pronunciation, click the checkmark icon.
 
+You can also hold down the shift key when pressing the blue Forvo button in the editor to automatically select the pronunciation with the most votes.
+
 <b>Using the bulk-add mode</b>
 The power of anki-forvo-dl is the bulk-add mode: Select your cards and lean back while letting the add-on do its job. 
 In order to select your cards, go to the card browser and select all the ones you wish to add audio to. Right click on the selection and choose "Bulk add Forvo audio to X cards". A dialog will pop up.
