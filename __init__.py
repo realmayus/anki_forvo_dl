@@ -1,6 +1,7 @@
 import pathlib
 from typing import List
 
+from PyQt5 import QtGui
 from anki.decks import DeckManager
 from anki.hooks import addHook
 from aqt import mw, gui_hooks
@@ -16,7 +17,7 @@ from .Config import Config, ConfigObject
 from .ConfigManager import ConfigManager
 from .Exceptions import NoResultsException
 from .FieldSelector import FieldSelector
-from .Forvo import Forvo
+from .Forvo import Forvo, Pronunciation
 from .LanguageSelector import LanguageSelector
 from .Util import get_field_id
 
@@ -43,9 +44,13 @@ def _handle_field_select(d, note_type_id, field_type, editor):
 
 
 def on_editor_btn_click(editor: Editor):
+    modifiers = QApplication.keyboardModifiers()
+    if modifiers == Qt.ShiftModifier:
+        """Choose top pronunciation automatically when shift key is held down"""
+        choose_automatically = True
+
     deck_id = editor.card.did if editor.card is not None else editor.parentWindow.deckChooser.selectedId()
     note_type_id = editor.card.note().mid if editor.card is not None else editor.mw.col.models.current()["id"]
-
     search_field = config.get_note_type_specific_config_object("searchField", note_type_id)
     if search_field is None:
         d = FieldSelector(editor.parentWindow, editor.mw, note_type_id, "searchField", config)
@@ -88,23 +93,39 @@ def on_editor_btn_click(editor: Editor):
                 showInfo("No results found! :(")
                 return
 
-            dialog = AddSingle(editor.parentWindow, pronunciations=results)
+            if choose_automatically:
+                """If shift key is held down"""
+                results.sort(key=lambda result: result.votes)  # sort by votes
+                top: Pronunciation = results[len(results) - 1]  # get most upvoted pronunciation
+                top.download_pronunciation()  # download that
+                if config.get_config_object("appendAudio").value:
+                    editor.note.fields[
+                        get_field_id(audio_field, editor.note)] += "[sound:%s]" % top.audio
+                else:
+                    editor.note.fields[
+                        get_field_id(audio_field, editor.note)] = "[sound:%s]" % top.audio
 
-            def handle_close():
-                if dialog.selected_pronunciation is not None:
-                    if config.get_config_object("appendAudio").value:
-                        editor.note.fields[
-                            get_field_id(audio_field, editor.note)] += "[sound:%s]" % dialog.selected_pronunciation.audio
+            else:
+                dialog = AddSingle(editor.parentWindow, pronunciations=results)
+
+                def handle_close():
+                    Forvo.cleanup(None)
+                    if dialog.selected_pronunciation is not None:
+                        if config.get_config_object("appendAudio").value:
+                            editor.note.fields[
+                                get_field_id(audio_field, editor.note)] += "[sound:%s]" % dialog.selected_pronunciation.audio
+                        else:
+                            editor.note.fields[
+                                get_field_id(audio_field, editor.note)] = "[sound:%s]" % dialog.selected_pronunciation.audio
+
+                        if not editor.addMode:
+                            editor.note.flush()
+                        editor.loadNote()
                     else:
-                        editor.note.fields[
-                            get_field_id(audio_field, editor.note)] = "[sound:%s]" % dialog.selected_pronunciation.audio
+                        showInfo("No pronunciation was selected.")
 
-                    if not editor.addMode:
-                        editor.note.flush()
-                    editor.loadNote()
-
-            dialog.finished.connect(handle_close)
-            dialog.show()
+                dialog.finished.connect(handle_close)
+                dialog.show()
 
         config_lang = config.get_deck_specific_config_object("language", deck_id)
 

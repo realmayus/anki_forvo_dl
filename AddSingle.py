@@ -109,7 +109,3 @@ class AddSingle(QDialog):
         self.selected_pronunciation = pronunciation
         self.close()
 
-    def closeEvent(self, event):
-        """Clean up before exit"""
-        Forvo.cleanup(None)
-        event.accept()
