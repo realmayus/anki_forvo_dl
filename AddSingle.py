@@ -107,4 +107,6 @@ class AddSingle(QDialog):
 
     def select_pronunciation(self, pronunciation: Pronunciation):
         self.selected_pronunciation = pronunciation
+        if pronunciation.audio is None:
+            pronunciation.download_pronunciation()
         self.close()
