@@ -42,7 +42,7 @@ def _handle_field_select(d, note_type_id, field_type, editor):
         showInfo("Cancelled download because fields weren't selected.")
 
 
-def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool]):
+def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] = None):
 
     if choose_automatically is None:
         modifiers = QApplication.keyboardModifiers()
@@ -157,7 +157,7 @@ def on_browser_ctx_menu_click(browser: Browser, selected):
 
 
 def add_editor_button(buttons: List[str], editor: Editor):
-    editor._links["forvo_dl"] = lambda: on_editor_btn_click(editor, None)
+    editor._links["forvo_dl"] = on_editor_btn_click
     if os.path.isabs(os.path.join(asset_dir, "icon.png")):
         iconstr = editor.resourceToData(os.path.join(asset_dir, "icon.png"))
     else:
