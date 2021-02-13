@@ -279,7 +279,7 @@ class Thread(QThread):
             """Go through all cards that are selected in the editor"""
             # self.mutex.lock()
             if self.is_cancelled:
-                Forvo.cleanup(None)
+                Forvo.cleanup()
                 return
             if not self._status:  # If download is paused, wait
                 self.cond.wait(self.mutex)
@@ -330,7 +330,7 @@ class Thread(QThread):
 
             # self.mutex.unlock()
 
-        Forvo.cleanup(None)  # cleanup files in temp directory (None is passed as the self parameter here)
+        Forvo.cleanup()  # cleanup files in temp directory (None is passed as the self parameter here)
 
     def toggle_status(self):  # toggle pause state
         self._status = not self._status

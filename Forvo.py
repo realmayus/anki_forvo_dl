@@ -140,10 +140,9 @@ class Forvo:
 
         return self
 
-
-    def cleanup(self):
+    @staticmethod
+    def cleanup():
         """Removes any files in the /temp directory."""
         from . import temp_dir
         for f in os.listdir(temp_dir):
             os.remove(os.path.join(temp_dir, f))
-        return self
