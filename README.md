@@ -24,6 +24,10 @@ Afterwards, you will be presented with a dialog window that shows you a list of 
 
 You can also hold down the shift key when pressing the blue Forvo button in the editor to automatically select the pronunciation with the most votes.
 
+Other shortcuts:
+- ctrl + F: Open forvo window
+- ctrl + shift + F: Add top pronunciation
+
 <b>Using the bulk-add mode</b>
 
 The power of anki-forvo-dl is the bulk-add mode: Select your cards and lean back while letting the add-on do its job. 
