@@ -37,7 +37,7 @@ def _handle_field_select(d, note_type_id, field_type, editor):
     if d.selected_field is not None:
         config.set_note_type_specific_config_object(
             ConfigObject(name=field_type, value=d.selected_field, note_type=note_type_id))
-        on_editor_btn_click(editor=editor)
+        on_editor_btn_click(editor, False)
     else:
         showInfo("Cancelled download because fields weren't selected.")
 
@@ -117,7 +117,7 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool])
                 dialog = AddSingle(editor.parentWindow, pronunciations=results)
 
                 def handle_close():
-                    Forvo.cleanup(None)
+                    Forvo.cleanup()
                     if dialog.selected_pronunciation is not None:
                         if config.get_config_object("appendAudio").value:
                             editor.note.fields[
@@ -178,15 +178,6 @@ def add_browser_context_menu_entry(browser: Browser, m: QMenu):
     m.addSeparator()
     action = m.addAction(QIcon(os.path.join(asset_dir, "icon.png")), "Bulk add Forvo audio to " + str(len(selected)) + " card" + ("s" if len(selected) != 1 else "") + "...")
     action.triggered.connect(lambda: on_browser_ctx_menu_click(browser, selected))
-
-
-def open_config_manager(parent):
-    ConfigManager(parent).show()
-
-
-
-def open_about_window():
-    ConfigManager(mw).show()
 
 
 about = About(mw)
