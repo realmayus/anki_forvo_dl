@@ -1,5 +1,5 @@
 import pathlib
-from typing import List
+from typing import List, Tuple
 
 import anki
 from anki.hooks import addHook
@@ -42,13 +42,13 @@ def _handle_field_select(d, note_type_id, field_type, editor):
         showInfo("Cancelled download because fields weren't selected.")
 
 
-def on_editor_btn_click(editor: Editor):
-    choose_automatically = False
+def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool]):
 
-    modifiers = QApplication.keyboardModifiers()
-    if modifiers == Qt.ShiftModifier:
-        """Choose top pronunciation automatically when shift key is held down"""
-        choose_automatically = True
+    if choose_automatically is None:
+        modifiers = QApplication.keyboardModifiers()
+        if modifiers == Qt.ShiftModifier:
+            """Choose top pronunciation automatically when shift key is held down"""
+            choose_automatically = True
 
     deck_id = editor.card.did if editor.card is not None else editor.parentWindow.deckChooser.selectedId()
     note_type_id = editor.card.note().mid if editor.card is not None else editor.mw.col.models.current()["id"]
@@ -157,13 +157,18 @@ def on_browser_ctx_menu_click(browser: Browser, selected):
 
 
 def add_editor_button(buttons: List[str], editor: Editor):
-    editor._links["forvo_dl"] = on_editor_btn_click
+    editor._links["forvo_dl"] = lambda: on_editor_btn_click(editor, None)
     if os.path.isabs(os.path.join(asset_dir, "icon.png")):
         iconstr = editor.resourceToData(os.path.join(asset_dir, "icon.png"))
     else:
         iconstr = "/_anki/imgs/{}.png".format(os.path.join(asset_dir, "icon.png"))
 
-    return buttons + ["<div title=\"Hold down shift to select top audio\" style=\"float: right; margin: 0 3px\"><div style=\"display: flex; width: 50px; height: 25px; justify-content: center; align-items: center; padding: 0 5px; border-radius: 5px; background-color: #0094FF; color: #ffffff; font-size: 10px\" onclick=\"pycmd('forvo_dl');return false;\"><img style=\"margin-right: 5px; margin-left: 5px; height: 20px; width: 20px\" src=\"%s\"/><b style=\"user-select: none; margin-right: 7px\">Forvo</b></div></div>" % iconstr]
+    return buttons + ["<div title=\"Hold down shift + click to select top audio\n\nCTRL+F to open window\nCTRL+SHIFT+F to select top audio\" style=\"float: right; margin: 0 3px\"><div style=\"display: flex; width: 50px; height: 25px; justify-content: center; align-items: center; padding: 0 5px; border-radius: 5px; background-color: #0094FF; color: #ffffff; font-size: 10px\" onclick=\"pycmd('forvo_dl');return false;\"><img style=\"margin-right: 5px; margin-left: 5px; height: 20px; width: 20px\" src=\"%s\"/><b style=\"user-select: none; margin-right: 7px\">Forvo</b></div></div>" % iconstr]
+
+
+def add_editor_shortcut(shortcuts: List[Tuple], editor: Editor):
+    shortcuts.append(("Ctrl+F", lambda: on_editor_btn_click(editor, False)))
+    shortcuts.append(("Ctrl+Shift+F", lambda: on_editor_btn_click(editor, True)))
 
 
 def add_browser_context_menu_entry(browser: Browser, m: QMenu):
@@ -187,3 +192,4 @@ def open_about_window():
 about = About(mw)
 addHook("setupEditorButtons", add_editor_button)
 gui_hooks.browser_will_show_context_menu.append(add_browser_context_menu_entry)
+gui_hooks.editor_did_init_shortcuts.append(add_editor_shortcut)
