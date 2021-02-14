@@ -7,14 +7,14 @@ from aqt import mw, gui_hooks
 from aqt.browser import Browser
 from aqt.editor import Editor
 from aqt.qt import *
-from aqt.utils import showInfo
+from aqt.utils import showInfo, showWarning
 
 from .About import About
 from .AddSingle import AddSingle
 from .BulkAdd import BulkAdd
 from .Config import Config, ConfigObject
 from .ConfigManager import ConfigManager
-from .Exceptions import NoResultsException
+from .Exceptions import NoResultsException, FieldNotFoundException
 from .FieldSelector import FieldSelector
 from .Forvo import Forvo, Pronunciation
 from .LanguageSelector import LanguageSelector
@@ -31,7 +31,8 @@ for path in [temp_dir, user_files_dir, log_dir]:
     if not os.path.exists(path):
         os.makedirs(path)
 
-config = Config(os.path.join(user_files_dir, "config.json"), os.path.join(asset_dir, "config.template.json")).load_config().load_template().ensure_options()
+config = Config(os.path.join(user_files_dir, "config.json"),
+                os.path.join(asset_dir, "config.template.json")).load_config().load_template().ensure_options()
 
 
 def _handle_field_select(d, note_type_id, field_type, editor):
@@ -44,7 +45,6 @@ def _handle_field_select(d, note_type_id, field_type, editor):
 
 
 def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] = None):
-
     if choose_automatically is None:
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.ShiftModifier:
@@ -77,7 +77,8 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] 
     if editor.note is not None and editor.note[search_field] is not None and len(editor.note[search_field]) != 0:
         """If available, use the content of the defined search field as the query"""
         query = editor.note[search_field]
-    elif editor.note is not None and editor.currentField is not None and editor.note.fields[editor.currentField] is not None and len(editor.note.fields[editor.currentField]) != 0:
+    elif editor.note is not None and editor.currentField is not None and editor.note.fields[
+        editor.currentField] is not None and len(editor.note.fields[editor.currentField]) != 0:
         """If the search field is empty, use the content of the currently selected field"""
         query = editor.note.fields[editor.currentField]
     else:
@@ -100,12 +101,17 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] 
                 results.sort(key=lambda result: result.votes)  # sort by votes
                 top: Pronunciation = results[len(results) - 1]  # get most upvoted pronunciation
                 top.download_pronunciation()  # download that
-                if config.get_config_object("appendAudio").value:
-                    editor.note.fields[
-                        get_field_id(audio_field, editor.note)] += "[sound:%s]" % top.audio
-                else:
-                    editor.note.fields[
-                        get_field_id(audio_field, editor.note)] = "[sound:%s]" % top.audio
+                try:
+                    if config.get_config_object("appendAudio").value:
+                        editor.note.fields[
+                            get_field_id(audio_field, editor.note)] += "[sound:%s]" % top.audio
+                    else:
+                        editor.note.fields[
+                            get_field_id(audio_field, editor.note)] = "[sound:%s]" % top.audio
+                except FieldNotFoundException:
+                    showWarning(
+                        "Couldn't find field '%s' for adding the audio string. Please create a field with this name or change it in the config for the note type id %s" % (
+                            audio_field, str(note_type_id)))
 
                 if config.get_config_object("playAudioAfterSingleAddAutomaticSelection").value:  # play audio if desired
                     anki.sound.play(top.audio)
@@ -120,13 +126,19 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] 
                 def handle_close():
                     Forvo.cleanup()
                     if dialog.selected_pronunciation is not None:
-                        if config.get_config_object("appendAudio").value:
-                            editor.note.fields[
-                                get_field_id(audio_field, editor.note)] += "[sound:%s]" % dialog.selected_pronunciation.audio
-                        else:
-                            editor.note.fields[
-                                get_field_id(audio_field, editor.note)] = "[sound:%s]" % dialog.selected_pronunciation.audio
-
+                        try:
+                            if config.get_config_object("appendAudio").value:
+                                editor.note.fields[
+                                    get_field_id(audio_field,
+                                                 editor.note)] += "[sound:%s]" % dialog.selected_pronunciation.audio
+                            else:
+                                editor.note.fields[
+                                    get_field_id(audio_field,
+                                                 editor.note)] = "[sound:%s]" % dialog.selected_pronunciation.audio
+                        except FieldNotFoundException:
+                            showWarning(
+                                "Couldn't find field '%s' for adding the audio string. Please create a field with this name or change it in the config for the note type id %s" % (
+                                    audio_field, str(note_type_id)))
                         if not editor.addMode:
                             editor.note.flush()
                         editor.loadNote()
@@ -143,7 +155,8 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] 
 
             def handle_lang_select():
                 if d.selected_lang is not None:
-                    config.set_deck_specific_config_object(ConfigObject(name="language", value=d.selected_lang, deck=deck_id))
+                    config.set_deck_specific_config_object(
+                        ConfigObject(name="language", value=d.selected_lang, deck=deck_id))
                     proceed(d.selected_lang)
                 else:
                     showInfo("Cancelled download because no language was selected.")
@@ -173,7 +186,8 @@ def add_editor_button(buttons: List[str], editor: Editor):
     else:
         iconstr = "/_anki/imgs/{}.png".format(os.path.join(asset_dir, "icon.png"))
 
-    return buttons + ["<div title=\"Hold down shift + click to select top audio\n\nCTRL+F to open window\nCTRL+SHIFT+F to select top audio\" style=\"float: right; margin: 0 3px\"><div style=\"display: flex; width: 50px; height: 25px; justify-content: center; align-items: center; padding: 0 5px; border-radius: 5px; background-color: #0094FF; color: #ffffff; font-size: 10px\" onclick=\"pycmd('forvo_dl');return false;\"><img style=\"margin-right: 5px; margin-left: 5px; height: 20px; width: 20px\" src=\"%s\"/><b style=\"user-select: none; margin-right: 7px\">Forvo</b></div></div>" % iconstr]
+    return buttons + [
+        "<div title=\"Hold down shift + click to select top audio\n\nCTRL+F to open window\nCTRL+SHIFT+F to select top audio\" style=\"float: right; margin: 0 3px\"><div style=\"display: flex; width: 50px; height: 25px; justify-content: center; align-items: center; padding: 0 5px; border-radius: 5px; background-color: #0094FF; color: #ffffff; font-size: 10px\" onclick=\"pycmd('forvo_dl');return false;\"><img style=\"margin-right: 5px; margin-left: 5px; height: 20px; width: 20px\" src=\"%s\"/><b style=\"user-select: none; margin-right: 7px\">Forvo</b></div></div>" % iconstr]
 
 
 def add_editor_shortcut(shortcuts: List[Tuple], editor: Editor):
@@ -193,9 +207,10 @@ def add_browser_context_menu_entry(browser: Browser, m: QMenu):
         unique_cards.append(card)
         addressed_unique_cards.append(card.nid)
 
-
     m.addSeparator()
-    action = m.addAction(QIcon(os.path.join(asset_dir, "icon.png")), "Bulk add Forvo audio to " + str(len(selected)) + " cards (%s unique cards)" % str(len(unique_cards)) + "...")
+    action = m.addAction(QIcon(os.path.join(asset_dir, "icon.png")),
+                         "Bulk add Forvo audio to " + str(len(selected)) + " cards (%s unique cards)" % str(
+                             len(unique_cards)) + "...")
     action.triggered.connect(lambda: on_browser_ctx_menu_click(browser, selected))
 
 
