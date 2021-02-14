@@ -23,7 +23,12 @@
   },
   "appendAudio": {
     "friendly": "Append to existing audio",
-    "description": "Appends the new audios to the existing value of the audio field",
+    "description": "Appends the new audios to the existing value - instead of replacing it - of the audio field",
+    "default": true
+  },
+  "skipExistingBulkAdd": {
+    "friendly": "Skip existing",
+    "description": "Skip cards that already have content in the audio field (Bulk add mode)",
     "default": true
   },
   "playAudioAfterSingleAddAutomaticSelection": {

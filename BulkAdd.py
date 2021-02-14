@@ -1,7 +1,11 @@
+import os
+import traceback
+from datetime import datetime
 from typing import List
 
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QWaitCondition, QMutex, pyqtSlot
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QProgressBar, QHBoxLayout, QScrollArea, QWidget
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QProgressBar, QHBoxLayout, QScrollArea, QWidget, \
+    QCheckBox
 from anki.cards import Card
 from aqt import AnkiQt
 from aqt.utils import showInfo, askUser
@@ -17,10 +21,10 @@ from .Util import FailedDownload
 
 class BulkAdd(QDialog):
     """Dialog that opens when clicking on 'Bulk Add Forvo Audio to X cards' in the context menu in the browser"""
-    def __init__(self, parent, cards: List[Card], mw, config: Config):
+    def __init__(self, parent, unique_cards: List[Card], mw, config: Config):
         super().__init__(parent)
         self.config: Config = config
-        self.cards = cards
+        self.unique_cards = unique_cards
         self.setFixedWidth(500)
         self.setFixedHeight(350)
         self.selected_pronunciation: Pronunciation = None
@@ -31,7 +35,7 @@ class BulkAdd(QDialog):
         self.hlayout.addLayout(self.layout)
         self.setLayout(self.hlayout)
         self.description = "<h1>anki-forvo-dl</h1><p>anki-forvo-dl will download audio files for the selected cards based on the selected search field and put the audio in the selected audio field.</p><p>You can change these fields by going to the add-on's directory > user_files > config.json and changing the field names there.</p>"
-        self.description += "<p>Forvo offers their service for free, so please be kind and <b>don't use the bulk-add feature regularly to avoid that Forvo's servers get nuked</b>. %s cards mean %s requests to their servers. There is a delay of a second between the downloads to protect them. Try to download the audio files as you create your cards, using the blue Forvo button in the editor.</p>" % (str(len(self.cards)), str(len(self.cards) * 2))
+        self.description += "<p>Forvo offers their service for free, so please be kind and <b>don't use the bulk-add feature regularly to avoid that Forvo's servers get nuked</b>. %s cards mean %s requests to their servers. There is a delay of a second between the downloads to protect them. Try to download the audio files as you create your cards, using the blue Forvo button in the editor.</p>" % (str(len(self.unique_cards)), str(len(self.unique_cards) * 2))
         self.description_label = QLabel(text=self.description)
         self.description_label.setMinimumWidth(450)
         self.description_label.setStyleSheet("margin: 0; padding: 0;")
@@ -47,7 +51,18 @@ class BulkAdd(QDialog):
         self.btn.clicked.connect(self.start_downloads_wrapper)
         self.layout.addWidget(self.btn)
 
-        self.th = Thread(cards, mw, config)  # Initialize Thread
+        self.th = Thread(self.unique_cards, mw, config)  # Initialize Thread
+
+        def change_skip_existing_option(skip_existing: bool, config_object):
+            config_object.value = skip_existing
+            self.config.set_config_object(config_object)
+
+
+        skip_existing_co = self.config.get_config_object("skipExistingBulkAdd")
+        self.skip_existing_checkbox = QCheckBox(skip_existing_co.description)
+        self.skip_existing_checkbox.setChecked(skip_existing_co.value)
+        self.skip_existing_checkbox.stateChanged.connect(lambda state: change_skip_existing_option(state == Qt.Checked, skip_existing_co))
+        self.layout.addWidget(self.skip_existing_checkbox)
 
         self.btn_box = QHBoxLayout()
 
@@ -69,7 +84,7 @@ class BulkAdd(QDialog):
         self.layout.addLayout(self.btn_box)
 
         self.progress = QProgressBar()
-        self.progress.setMaximum(len(cards))
+        self.progress.setMaximum(len(self.unique_cards))
         self.progress.setMinimum(0)
         self.progress.setVisible(False)
         self.layout.addWidget(self.progress)
@@ -103,7 +118,7 @@ class BulkAdd(QDialog):
     def review_downloads(self):
         """Opens the FailedDownloadsDialog after downloads are completed"""
         if len(self.th.failed) > 0:
-            dialog = FailedDownloadsDialog(self.parent, self.th.failed, self.mw, self.config)
+            dialog = FailedDownloadsDialog(self.parent, self.th.failed, self.mw, self.config, self.th.skipped_cards)
             dialog.finished.connect(lambda: self.close())  # close this window when the FailedDownloadsDialog is closed
             dialog.show()
         else:
@@ -111,12 +126,16 @@ class BulkAdd(QDialog):
                 for card in self.th.cards:
                     if card not in self.th.done_cards:
                         self.th.failed.append(FailedDownload(card, DownloadCancelledException()))
-                dialog = FailedDownloadsDialog(self.parent, self.th.failed, self.mw, self.config)
+                dialog = FailedDownloadsDialog(self.parent, self.th.failed, self.mw, self.config, self.th.skipped_cards)
                 dialog.finished.connect(
                     lambda: self.close())  # close this window when the FailedDownloadsDialog is closed
                 dialog.show()
             else:
-                showInfo("All downloads finished successfully!")
+                if self.th.skipped_cards == 0:
+                    showInfo("All downloads finished successfully!")
+                else:
+                    showInfo("All downloads finished successfully!\n%s cards that already had something in their audio fields were skipped." % (str(self.th.skipped_cards)))
+
                 self.close()
 
     @pyqtSlot()
@@ -162,7 +181,7 @@ class BulkAdd(QDialog):
 
     def ensure_languages(self):
         """Ensures that the language is set for all selected decks; otherwise show dialog"""
-        missing = list(set([card.did for card in self.cards if
+        missing = list(set([card.did for card in self.unique_cards if
                             self.config.get_deck_specific_config_object("language", card.did) is None]))
         if len(missing) > 0:
             self.select_lang(missing)
@@ -171,8 +190,8 @@ class BulkAdd(QDialog):
 
     def start_downloads_wrapper(self):
         """Starts the whole procedure that involves ensuring fields and ensuring languages"""
-        if len(self.cards) > 350:
-            if not askUser(title="Disclaimer", text="It has been reported that Forvo bans IPs that are downloading too many audios. You have selected %s cards, resulting in %s requests to the server. <b>Please consider to spread your downloads over a few days to avoid getting IP-banned by Forvo.</b>\nYou are responsible for what you download with this tool. Do you really want to continue?" % (str(len(self.cards)), str(len(self.cards) * 2))):
+        if len(self.unique_cards) > 350:
+            if not askUser(title="Disclaimer", text="It has been reported that Forvo bans IPs that are downloading too many audios. You have selected %s cards, resulting in %s requests to the server. <b>Please consider to spread your downloads over a few days to avoid getting IP-banned by Forvo.</b>\nYou are responsible for what you download with this tool. Do you really want to continue?" % (str(len(self.unique_cards)), str(len(self.unique_cards) * 2))):
                 self.close()
                 return
         self.ensure_fields()
@@ -195,7 +214,7 @@ class BulkAdd(QDialog):
                         self.ensure_languages()
                         return
                     # POV: Asked for searchField -> now ask for audioField
-                    new_missing = list(set([card.note_type()["id"] for card in self.cards if
+                    new_missing = list(set([card.note_type()["id"] for card in self.unique_cards if
                                             self.config.get_note_type_specific_config_object("audioField",
                                                                                              card.note_type()[
                                                                                                  "id"]) is None]))
@@ -214,7 +233,7 @@ class BulkAdd(QDialog):
         d.show()
 
     def ensure_fields(self):
-        missing = list(set([card.note_type()["id"] for card in self.cards if
+        missing = list(set([card.note_type()["id"] for card in self.unique_cards if
                             self.config.get_note_type_specific_config_object("searchField",
                                                                              card.note_type()["id"]) is None]))
         if len(missing) > 0:
@@ -223,7 +242,7 @@ class BulkAdd(QDialog):
         else:
             """If all cards have a searchField assigned:"""
 
-            new_missing = list(set([card.note_type()["id"] for card in self.cards if
+            new_missing = list(set([card.note_type()["id"] for card in self.unique_cards if
                                     self.config.get_note_type_specific_config_object("audioField",
                                                                                      card.note_type()[
                                                                                          "id"]) is None]))
@@ -236,6 +255,7 @@ class BulkAdd(QDialog):
 
     def start_downloads(self):
         """FINALLY start the downloads"""
+        self.skip_existing_checkbox.setVisible(False)
         self.btn.setVisible(False)                # }--- disable some controls and make others visible
         self.pause_button.setVisible(True)                  # }
         self.cancel_button.setVisible(True)                  # }
@@ -266,6 +286,7 @@ class Thread(QThread):
         self._status = True
         self.cards = cards
         self.mw = mw
+        self.skipped_cards = 0
         self.failed: List[FailedDownload] = []
         self.config: Config = config
 
@@ -273,8 +294,11 @@ class Thread(QThread):
         self.wait()
 
     def run(self):
-        card: Card
+        from . import log_dir
 
+        skip_existing = self.config.get_config_object("skipExistingBulkAdd").value
+
+        card: Card
         for card in self.cards:
             """Go through all cards that are selected in the editor"""
             # self.mutex.lock()
@@ -285,16 +309,26 @@ class Thread(QThread):
                 self.cond.wait(self.mutex)
             try:  # use try to avoid stopping the entire thread because of a single exception
                 # Get fields from config
+
                 query_field = self.config.get_note_type_specific_config_object("searchField", card.note_type()["id"]).value
                 audio_field = self.config.get_note_type_specific_config_object("audioField", card.note_type()["id"]).value
 
                 if query_field not in card.note():
                     raise FieldNotFoundException(query_field)
 
+                if audio_field not in card.note():
+                    raise FieldNotFoundException(audio_field)
+
                 query = card.note()[query_field]  # Get query string from card's note using field name
                 language = self.config.get_deck_specific_config_object("language", card.did).value
 
                 self.log.emit("[Next Card] Query: %s; Language: %s" % (query, language))
+
+                if skip_existing and len(card.note()[audio_field]) > 0:
+                    """Skip cards that already have something in the audio field if the setting is turned on"""
+                    self.skipped_cards += 1
+                    continue
+
 
                 # Get language from config for the card's deck
 
@@ -322,6 +356,9 @@ class Thread(QThread):
                 # Save all raised exceptions in a list to retrieve them later in the FailedDownloadsDialog
                 self.failed.append(FailedDownload(reason=e, card=card))
                 self.log.emit("[Error] Card with 1. Field %s failed due to Exception: %s" % (card.note().fields[0], str(e)))
+                with open(os.path.join(log_dir, "bulk_error_log-" + datetime.now().strftime('%Y-%m-%dT%H') + ".log"), "a", encoding="utf8") as f:
+                    f.write("\n".join(traceback.format_exception(None, e, e.__traceback__)) + "\n------------------\n")
+
 
             self.done_cards.append(card)
             self.cnt += 1  # Increase count for progress bar

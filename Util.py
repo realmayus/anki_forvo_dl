@@ -1,3 +1,6 @@
+import os
+import platform
+import subprocess
 from dataclasses import dataclass
 
 from PyQt5.QtWidgets import QScrollBar
@@ -51,4 +54,13 @@ class CustomScrollbar(QScrollBar):
 class FailedDownload:
     card: Card
     reason: Exception
+
+
+def open_file(path):
+    if platform.system() == "Windows":
+        os.startfile(path)
+    elif platform.system() == "Darwin":
+        subprocess.Popen(["open", path])
+    else:
+        subprocess.Popen(["xdg-open", path])
 

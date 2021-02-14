@@ -1,4 +1,4 @@
-import traceback
+import os
 from typing import List
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QDesktopServices
@@ -8,7 +8,7 @@ from anki.cards import Card
 from aqt.browser import Browser
 
 from . import Exceptions, Config
-from .Util import FailedDownload
+from .Util import FailedDownload, open_file
 
 
 class FailedListWidgetItemWidget(QWidget):
@@ -43,7 +43,8 @@ class FailedListWidgetItemWidget(QWidget):
 
 class FailedDownloadsDialog(QDialog):
 
-    def __init__(self, parent, failed, mw, config: Config):
+    def __init__(self, parent, failed, mw, config: Config, skipped_cards: int):
+        from . import log_dir
         super().__init__(parent)
 
         self.parent = parent
@@ -54,12 +55,19 @@ class FailedDownloadsDialog(QDialog):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.description = "<h2>%s Download%s Failed</h2>" % (str(len(self.failed)), "s" if len(self.failed) != 1 else "")
+        if skipped_cards > 0:
+            self.description += "%s cards that already had something in their audio fields were skipped." % str(skipped_cards)
         self.description_label = QLabel(text=self.description)
         self.description_label.setMinimumSize(self.sizeHint())
+        self.description_label.setMinimumHeight(100)
         self.description_label.setWordWrap(True)
         self.description_label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.description_label)
         self.show_reasons()
+
+        logs_btn = QPushButton("Open Logs")
+        logs_btn.clicked.connect(lambda: open_file(log_dir))
+        self.layout.addWidget(logs_btn)
 
     def get_reasons(self):
         reasons = {}

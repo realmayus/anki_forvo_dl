@@ -24,9 +24,10 @@ from .Util import get_field_id
 asset_dir = os.path.join(pathlib.Path(__file__).parent.absolute(), "assets")
 temp_dir = os.path.join(pathlib.Path(__file__).parent.absolute(), "temp")
 user_files_dir = os.path.join(pathlib.Path(__file__).parent.absolute(), "user_files")
+log_dir = os.path.join(pathlib.Path(__file__).parent.absolute(), "user_files", "logs")
 
 """Ensure directories (create if not existing)"""
-for path in [temp_dir, user_files_dir]:
+for path in [temp_dir, user_files_dir, log_dir]:
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -152,7 +153,16 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] 
 
 
 def on_browser_ctx_menu_click(browser: Browser, selected):
-    dialog = BulkAdd(browser.window(), [browser.mw.col.getCard(card) for card in selected], browser.mw, config)
+    cards = [browser.mw.col.getCard(card) for card in selected]
+    unique_cards = []
+    addressed_unique_cards = []
+    for card in cards:
+        if card.nid in addressed_unique_cards:
+            continue
+        unique_cards.append(card)
+        addressed_unique_cards.append(card.nid)
+
+    dialog = BulkAdd(browser.window(), unique_cards, browser.mw, config)
     dialog.show()
 
 
@@ -174,9 +184,18 @@ def add_editor_shortcut(shortcuts: List[Tuple], editor: Editor):
 def add_browser_context_menu_entry(browser: Browser, m: QMenu):
     selected = browser.selectedCards()
 
+    cards = [browser.mw.col.getCard(card) for card in selected]
+    unique_cards = []
+    addressed_unique_cards = []
+    for card in cards:
+        if card.nid in addressed_unique_cards:
+            continue
+        unique_cards.append(card)
+        addressed_unique_cards.append(card.nid)
+
 
     m.addSeparator()
-    action = m.addAction(QIcon(os.path.join(asset_dir, "icon.png")), "Bulk add Forvo audio to " + str(len(selected)) + " card" + ("s" if len(selected) != 1 else "") + "...")
+    action = m.addAction(QIcon(os.path.join(asset_dir, "icon.png")), "Bulk add Forvo audio to " + str(len(selected)) + " cards (%s unique cards)" % str(len(unique_cards)) + "...")
     action.triggered.connect(lambda: on_browser_ctx_menu_click(browser, selected))
 
 
