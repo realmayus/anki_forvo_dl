@@ -54,7 +54,7 @@ class Forvo:
     def __init__(self, word: str, language: str, mw):
         self.html: BeautifulSoup
         self.language = language
-        self.word = word.strip()  # trim whitespace
+        self.word = word.strip().replace("・", "")  # trim whitespace and remove katakana interpuncts
         self.pronunciations: List[Pronunciation] = []
         self.mw = mw
 
