@@ -116,10 +116,13 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] 
                 if config.get_config_object("playAudioAfterSingleAddAutomaticSelection").value:  # play audio if desired
                     anki.sound.play(top.audio)
 
-                if not editor.addMode:  # save
-                    editor.note.flush()
-                editor.loadNote()
+                def flush_field():
+                    if not editor.addMode:  # save
+                        editor.note.flush()
+                    editor.currentField = get_field_id(audio_field, editor.note)
+                    editor.loadNote(focusTo=get_field_id(audio_field, editor.note))
 
+                editor.saveNow(flush_field, keepFocus=True)
             else:
                 dialog = AddSingle(editor.parentWindow, pronunciations=results)
 
