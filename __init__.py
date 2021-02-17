@@ -97,32 +97,35 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] 
                 return
 
             if choose_automatically:
-                """If shift key is held down"""
-                results.sort(key=lambda result: result.votes)  # sort by votes
-                top: Pronunciation = results[len(results) - 1]  # get most upvoted pronunciation
-                top.download_pronunciation()  # download that
-                try:
-                    if config.get_config_object("appendAudio").value:
-                        editor.note.fields[
-                            get_field_id(audio_field, editor.note)] += "[sound:%s]" % top.audio
-                    else:
-                        editor.note.fields[
-                            get_field_id(audio_field, editor.note)] = "[sound:%s]" % top.audio
-                except FieldNotFoundException:
-                    showWarning(
-                        "Couldn't find field '%s' for adding the audio string. Please create a field with this name or change it in the config for the note type id %s" % (
-                            audio_field, str(note_type_id)))
+                def add_automatically():
+                    """If shift key is held down"""
+                    results.sort(key=lambda result: result.votes)  # sort by votes
+                    top: Pronunciation = results[len(results) - 1]  # get most upvoted pronunciation
+                    top.download_pronunciation()  # download that
+                    try:
+                        if config.get_config_object("appendAudio").value:
+                            editor.note.fields[
+                                get_field_id(audio_field, editor.note)] += "[sound:%s]" % top.audio
+                        else:
+                            editor.note.fields[
+                                get_field_id(audio_field, editor.note)] = "[sound:%s]" % top.audio
+                    except FieldNotFoundException:
+                        showWarning(
+                            "Couldn't find field '%s' for adding the audio string. Please create a field with this name or change it in the config for the note type id %s" % (
+                                audio_field, str(note_type_id)))
 
-                if config.get_config_object("playAudioAfterSingleAddAutomaticSelection").value:  # play audio if desired
-                    anki.sound.play(top.audio)
+                    if config.get_config_object("playAudioAfterSingleAddAutomaticSelection").value:  # play audio if desired
+                        anki.sound.play(top.audio)
 
-                def flush_field():
-                    if not editor.addMode:  # save
-                        editor.note.flush()
-                    editor.currentField = get_field_id(audio_field, editor.note)
-                    editor.loadNote(focusTo=get_field_id(audio_field, editor.note))
+                    def flush_field():
+                        if not editor.addMode:  # save
+                            editor.note.flush()
+                        editor.currentField = get_field_id(audio_field, editor.note)
+                        editor.loadNote(focusTo=get_field_id(audio_field, editor.note))
 
-                editor.saveNow(flush_field, keepFocus=True)
+                    editor.saveNow(flush_field, keepFocus=True)
+
+                editor.saveNow(add_automatically, keepFocus=False)
             else:
                 dialog = AddSingle(editor.parentWindow, pronunciations=results)
 
