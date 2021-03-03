@@ -76,7 +76,7 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] 
         showInfo("Please enter a search term in the field '" + search_field + "'.")
         return
 
-    if editor.note is not None and editor.note[search_field] is not None and len(editor.note[search_field]) != 0:
+    if editor.note is not None and search_field in editor.note.keys() and len(editor.note[search_field]) != 0:
         """If available, use the content of the defined search field as the query"""
         query = editor.note[search_field]
     elif editor.note is not None and editor.currentField is not None and editor.note.fields[
