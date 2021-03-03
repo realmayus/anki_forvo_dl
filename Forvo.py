@@ -55,7 +55,7 @@ class Forvo:
     def __init__(self, word: str, language: str, mw):
         self.html: BeautifulSoup
         self.language = language
-        self.word = word.strip().replace("・", "")  # trim whitespace and remove katakana interpuncts
+        self.word = word.strip().replace("・", "").replace("~", "").replace("。", "").replace(".", "")  # trim whitespace and remove katakana interpuncts & tildes & dots
         self.pronunciations: List[Pronunciation] = []
         self.mw = mw
 
@@ -70,7 +70,7 @@ class Forvo:
             log_debug("[Forvo.py] Reading result page")
             page = urllib.request.urlopen(url=search_url + urllib.parse.quote_plus(self.word)).read()
             log_debug("[Forvo.py] Done with reading result page")
-            
+
             log_debug("[Forvo.py] Initializing BS4")
             self.html = BeautifulSoup(page, "html.parser")
             log_debug("[Forvo.py] Initialized BS4")
