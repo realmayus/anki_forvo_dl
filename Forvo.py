@@ -11,6 +11,7 @@ from urllib.error import HTTPError
 from aqt import AnkiQt
 from bs4 import BeautifulSoup, Tag
 
+from . import Config
 from .Exceptions import NoResultsException
 from .Util import log_debug
 
@@ -51,11 +52,20 @@ class Pronunciation:
         self.audio = None
 
 
+def prepare_query_string(input: str, config: Config) -> str:
+    query = str(input)  # clone
+    query = query.strip()
+    for char in config.get_config_object("replaceCharacters").value:
+        query = query.replace(char, "")
+    log_debug("[Forvo.py] Using search query: %s" % query)
+    return query
+
+
 class Forvo:
-    def __init__(self, word: str, language: str, mw):
+    def __init__(self, word: str, language: str, mw, config: Config):
         self.html: BeautifulSoup
         self.language = language
-        self.word = word.strip().replace("・", "").replace("~", "").replace("。", "").replace(".", "")  # trim whitespace and remove katakana interpuncts & tildes & dots
+        self.word = prepare_query_string(word, config)
         self.pronunciations: List[Pronunciation] = []
         self.mw = mw
 

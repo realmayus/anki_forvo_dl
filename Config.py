@@ -23,19 +23,19 @@ class Config:
         if not os.path.isfile(self.config_path):
             self.config = dict()
             return self
-        with open(self.config_path, "r") as f:
+        with open(self.config_path, "r", encoding="utf8") as f:
             self.config = json.loads(f.read())
         return self
 
     def load_template(self):
         """Loads the template from the file into memory"""
-        with open(self.template_path, "r") as f:
+        with open(self.template_path, "r", encoding="utf8") as f:
             self.template = json.loads(f.read())
         return self
 
     def _save(self):
         """Saves the current config from memory into the file."""
-        with open(self.config_path, "w") as f:
+        with open(self.config_path, "w", encoding="utf8") as f:
             f.write(json.dumps(self.config, indent=4))
 
 

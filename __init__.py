@@ -46,6 +46,12 @@ def _handle_field_select(d, note_type_id, field_type, editor):
         showInfo("Cancelled download because fields weren't selected.")
 
 
+def select_field(editor: Editor, note_type_id, field_type):
+    d = FieldSelector(editor.parentWindow, editor.mw, note_type_id, field_type, config)
+    d.finished.connect(lambda: _handle_field_select(d, note_type_id, field_type, editor))
+    d.show()
+
+
 def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] = None):
     if choose_automatically is None:
         modifiers = QApplication.keyboardModifiers()
@@ -56,17 +62,13 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] 
     deck_id = editor.card.did if editor.card is not None else editor.parentWindow.deckChooser.selectedId()
     note_type_id = editor.card.note().mid if editor.card is not None else editor.mw.col.models.current()["id"]
     search_field = config.get_note_type_specific_config_object("searchField", note_type_id)
-    if search_field is None:
-        d = FieldSelector(editor.parentWindow, editor.mw, note_type_id, "searchField", config)
-        d.finished.connect(lambda: _handle_field_select(d, note_type_id, "searchField", editor))
-        d.show()
+    if search_field is None or search_field.value not in editor.note.keys():
+        select_field(editor, note_type_id, "searchField")
         return
 
     audio_field = config.get_note_type_specific_config_object("audioField", note_type_id)
-    if audio_field is None:
-        d = FieldSelector(editor.parentWindow, editor.mw, note_type_id, "audioField", config)
-        d.finished.connect(lambda: _handle_field_select(d, note_type_id, "audioField", editor))
-        d.show()
+    if audio_field is None or audio_field.value not in editor.note.keys():
+        select_field(editor, note_type_id, "audioField")
         return
 
     search_field = search_field.value
@@ -90,7 +92,7 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] 
     if deck_id is not None:
         def proceed(language):
             try:
-                forvo = Forvo(query, language, editor.mw).load_search_query()
+                forvo = Forvo(query, language, editor.mw, config).load_search_query()
                 if forvo is not None:
                     results = forvo.get_pronunciations().pronunciations
                 else:

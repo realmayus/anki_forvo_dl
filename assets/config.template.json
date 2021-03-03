@@ -35,5 +35,12 @@
     "friendly": "Play audio after automatic selection (single add)",
     "description": "Play the audio that was selected automatically when the shift key was held down when pressing the blue forvo button in the editor",
     "default": true
+  },
+  "replaceCharacters": {
+    "friendly": "Characters to replace",
+    "description": "A list of characters that should be removed from the search term before searching on forvo.",
+    "default": [
+        "・", "~", "。", "."
+    ]
   }
 }

@@ -11,7 +11,7 @@ from aqt import AnkiQt
 from aqt.utils import showInfo, askUser
 
 from .Config import Config, ConfigObject
-from .Exceptions import FieldNotFoundException, DownloadCancelledException
+from .Exceptions import FieldNotFoundException, DownloadCancelledException, NoResultsException
 from .FailedDownloadsDialog import FailedDownloadsDialog
 from .FieldSelector import FieldSelector
 from .Forvo import Pronunciation, Forvo
@@ -333,10 +333,11 @@ class Thread(QThread):
                 # Get language from config for the card's deck
 
                 # Get the results
-                results = Forvo(query, language, self.mw) \
-                    .load_search_query() \
-                    .get_pronunciations().pronunciations
-
+                results = Forvo(query, language, self.mw, self.config)
+                if results is not None:
+                    results = results.load_search_query().get_pronunciations().pronunciations
+                else:
+                    raise NoResultsException()
                 results.sort(key=lambda result: result.votes)  # sort by votes
 
                 top: Pronunciation = results[len(results) - 1]  # get most upvoted pronunciation
