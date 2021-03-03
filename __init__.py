@@ -90,10 +90,12 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] 
     if deck_id is not None:
         def proceed(language):
             try:
-                results = Forvo(query, language, editor.mw) \
-                    .load_search_query() \
-                    .get_pronunciations() \
-                    .pronunciations
+                forvo = Forvo(query, language, editor.mw).load_search_query()
+                if forvo is not None:
+                    results = forvo.get_pronunciations().pronunciations
+                else:
+                    raise Exception()
+                    return
             except NoResultsException:
                 showInfo("No results found! :(")
                 return
