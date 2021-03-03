@@ -64,3 +64,9 @@ def open_file(path):
     else:
         subprocess.Popen(["xdg-open", path])
 
+
+def log_debug(msg):
+    from . import user_files_dir, debug_mode
+    if debug_mode:
+        with open(os.path.join(user_files_dir, "logs", "debug"), "a") as f:
+            f.write(msg)

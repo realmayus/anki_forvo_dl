@@ -12,6 +12,7 @@ from aqt import AnkiQt
 from bs4 import BeautifulSoup, Tag
 
 from .Exceptions import NoResultsException
+from .Util import log_debug
 
 search_url = "https://forvo.com/word/"
 download_url = "https://forvo.com/download/mp3/"
@@ -66,27 +67,41 @@ class Forvo:
     def load_search_query(self):
         """Loads the search result page on Forvo"""
         try:
+            log_debug("[Forvo.py] Reading result page")
             page = urllib.request.urlopen(url=search_url + urllib.parse.quote_plus(self.word)).read()
+            log_debug("[Forvo.py] Done with reading result page")
+            
+            log_debug("[Forvo.py] Initializing BS4")
+            self.html = BeautifulSoup(page, "html.parser")
+            log_debug("[Forvo.py] Initialized BS4")
+            return self
         except Exception as e:
+            log_debug("[Forvo.py] Exception: " + str(e))
             if isinstance(e, HTTPError):
                 e: HTTPError
                 if e.code == 404:
                     raise NoResultsException()  # Interpret 404 http error code as no results found
             else:
                 raise e  # otherwise, raise the exception as usual
-        self.html = BeautifulSoup(page, "html.parser")
-        return self
 
     def get_pronunciations(self):
         """Creates pronunciation objects from the soup"""
+        log_debug("[Forvo.py] Searching language containers")
         available_langs_el = self.html.find_all(id=re.compile(r"language-container-\w{2,4}"))
+        log_debug("[Forvo.py] Done searching language containers")
+        log_debug("[Forvo.py] Compiling list of available langs")
         available_langs = [re.findall(r"language-container-(\w{2,4})", el.attrs["id"])[0] for el in available_langs_el]
         if self.language not in available_langs:
             raise NoResultsException()
+        log_debug("[Forvo.py] Done compiling list of available langs")
+        
+        log_debug("[Forvo.py] Searching lang container")
         lang_container = [lang for lang in available_langs_el if
                           re.findall(r"language-container-(\w{2,4})", lang.attrs["id"])[0] == self.language][0]
+        log_debug("[Forvo.py] Done searching lang container")
         pronunciations: Tag = lang_container.find_all(class_="pronunciations")[0].find_all(class_="show-all-pronunciations")[0].find_all("li")
-
+        
+        log_debug("[Forvo.py] Going through all pronunciations")
         for pronunciation in pronunciations:
             if len(pronunciation.find_all(class_="more")) == 0:
                 continue

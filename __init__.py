@@ -26,6 +26,8 @@ temp_dir = os.path.join(pathlib.Path(__file__).parent.absolute(), "temp")
 user_files_dir = os.path.join(pathlib.Path(__file__).parent.absolute(), "user_files")
 log_dir = os.path.join(pathlib.Path(__file__).parent.absolute(), "user_files", "logs")
 
+debug_mode = os.path.isfile(os.path.join(user_files_dir, ".debug"))
+
 """Ensure directories (create if not existing)"""
 for path in [temp_dir, user_files_dir, log_dir]:
     if not os.path.exists(path):
