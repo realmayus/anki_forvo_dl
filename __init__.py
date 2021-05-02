@@ -1,6 +1,6 @@
 import pathlib
 from typing import List, Tuple
-
+from bs4 import BeautifulSoup
 import anki
 import aqt.utils
 from anki.hooks import addHook
@@ -94,6 +94,8 @@ def on_editor_btn_click(editor: Editor, mode: Union[None, str] = None):
     else:
         showInfo("Please enter a search term in the field '" + search_field + "'.", editor.widget)
         return
+
+    query = BeautifulSoup(query, "html.parser").text
 
     if deck_id is not None:
         def proceed(language):
