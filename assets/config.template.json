@@ -21,10 +21,10 @@
       "default": "ja"
     }
   },
-  "appendAudio": {
-    "friendly": "Append to existing audio",
-    "description": "Appends the new audios to the existing value - instead of replacing it - of the audio field",
-    "default": true
+  "audioFieldAddMode": {
+    "friendly": "Audio field add mode",
+    "description": "Allows you to specify how the audio string should be added to the audio field. You can choose between 'prepend', 'replace' and 'append'.",
+    "default": "append"
   },
   "skipExistingBulkAdd": {
     "friendly": "Skip existing",

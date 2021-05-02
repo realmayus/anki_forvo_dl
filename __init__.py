@@ -53,7 +53,7 @@ def select_field(editor: Editor, note_type_id, field_type):
     d.show()
 
 
-def on_editor_btn_click(editor: Editor, mode: Union[None, str] = None):
+def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
     if mode is None:
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.ShiftModifier:
@@ -87,10 +87,10 @@ def on_editor_btn_click(editor: Editor, mode: Union[None, str] = None):
     elif editor.note is not None and search_field in editor.note.keys() and len(editor.note[search_field]) != 0:
         """If available, use the content of the defined search field as the query"""
         query = editor.note[search_field]
-    elif editor.note is not None and editor.currentField is not None and editor.note.fields[
-        editor.currentField] is not None and len(editor.note.fields[editor.currentField]) != 0:
-        """If the search field is empty, use the content of the currently selected field"""
-        query = editor.note.fields[editor.currentField]
+    # elif editor.note is not None and editor.currentField is not None and editor.note.fields[
+    #     editor.currentField] is not None and len(editor.note.fields[editor.currentField]) != 0:
+    #     """If the search field is empty, use the content of the currently selected field"""
+    #     query = editor.note.fields[editor.currentField]
     else:
         showInfo("Please enter a search term in the field '" + search_field + "'.", editor.widget)
         return
@@ -117,12 +117,19 @@ def on_editor_btn_click(editor: Editor, mode: Union[None, str] = None):
                     top: Pronunciation = results[len(results) - 1]  # get most upvoted pronunciation
                     top.download_pronunciation()  # download that
                     try:
-                        if config.get_config_object("appendAudio").value:
+                        if config.get_config_object("audioFieldAddMode").value == "append":
+                            """append"""
                             editor.note.fields[
                                 get_field_id(audio_field, editor.note)] += "[sound:%s]" % top.audio
-                        else:
+                        elif config.get_config_object("audioFieldAddMode").value == "replace":
+                            """replace"""
                             editor.note.fields[
                                 get_field_id(audio_field, editor.note)] = "[sound:%s]" % top.audio
+                        else:
+                            """prepend"""
+                            editor.note.fields[
+                                get_field_id(audio_field, editor.note)] = "[sound:%s]" % top.audio + editor.note.fields[
+                                get_field_id(audio_field, editor.note)]
                     except FieldNotFoundException:
                         showWarning(
                             "Couldn't find field '%s' for adding the audio string. Please create a field with this name or change it in the config for the note type id %s" % (
@@ -183,6 +190,10 @@ def on_editor_btn_click(editor: Editor, mode: Union[None, str] = None):
 
             d.finished.connect(handle_lang_select)
             d.show()
+
+
+def on_editor_btn_click(editor: Editor, mode: Union[None, str] = None):
+    editor.saveNow(lambda: add_pronunciation(editor, mode))
 
 
 def on_browser_ctx_menu_click(browser: Browser, selected):
