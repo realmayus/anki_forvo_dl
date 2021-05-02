@@ -2,6 +2,7 @@ import pathlib
 from typing import List, Tuple
 
 import anki
+import aqt.utils
 from anki.hooks import addHook
 from aqt import mw, gui_hooks
 from aqt.browser import Browser
@@ -43,7 +44,7 @@ def _handle_field_select(d, note_type_id, field_type, editor):
             ConfigObject(name=field_type, value=d.selected_field, note_type=note_type_id))
         on_editor_btn_click(editor, False)
     else:
-        showInfo("Cancelled download because fields weren't selected.")
+        showInfo("Cancelled download because fields weren't selected.", editor.widget)
 
 
 def select_field(editor: Editor, note_type_id, field_type):
@@ -52,12 +53,12 @@ def select_field(editor: Editor, note_type_id, field_type):
     d.show()
 
 
-def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] = None):
-    if choose_automatically is None:
+def on_editor_btn_click(editor: Editor, mode: Union[None, str] = None):
+    if mode is None:
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.ShiftModifier:
             """Choose top pronunciation automatically when shift key is held down"""
-            choose_automatically = True
+            mode = "auto"
 
     deck_id = editor.card.did if editor.card is not None else editor.parentWindow.deckChooser.selectedId()
     note_type_id = editor.card.note().mid if editor.card is not None else editor.mw.col.models.current()["id"]
@@ -75,10 +76,15 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] 
     audio_field = audio_field.value
 
     if editor.note is None:
-        showInfo("Please enter a search term in the field '" + search_field + "'.")
+        showInfo("Please enter a search term in the field '" + search_field + "'.", editor.widget)
         return
 
-    if editor.note is not None and search_field in editor.note.keys() and len(editor.note[search_field]) != 0:
+    if mode == 'input':
+        query, suc = aqt.utils.getText("Please enter a custom search term:", editor.widget, title="Enter custom search term")
+        if not suc:
+            showWarning("Didn't get any text, please try again.", editor.widget)
+            return
+    elif editor.note is not None and search_field in editor.note.keys() and len(editor.note[search_field]) != 0:
         """If available, use the content of the defined search field as the query"""
         query = editor.note[search_field]
     elif editor.note is not None and editor.currentField is not None and editor.note.fields[
@@ -86,7 +92,7 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] 
         """If the search field is empty, use the content of the currently selected field"""
         query = editor.note.fields[editor.currentField]
     else:
-        showInfo("Please enter a search term in the field '" + search_field + "'.")
+        showInfo("Please enter a search term in the field '" + search_field + "'.", editor.widget)
         return
 
     if deck_id is not None:
@@ -99,10 +105,10 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] 
                     raise Exception()
                     return
             except NoResultsException:
-                showInfo("No results found! :(")
+                showInfo("No results found! :(", editor.widget)
                 return
 
-            if choose_automatically:
+            if mode == "auto":
                 def add_automatically():
                     """If shift key is held down"""
                     results.sort(key=lambda result: result.votes)  # sort by votes
@@ -118,7 +124,7 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] 
                     except FieldNotFoundException:
                         showWarning(
                             "Couldn't find field '%s' for adding the audio string. Please create a field with this name or change it in the config for the note type id %s" % (
-                                audio_field, str(note_type_id)))
+                                audio_field, str(note_type_id)), editor.widget)
 
                     if config.get_config_object("playAudioAfterSingleAddAutomaticSelection").value:  # play audio if desired
                         anki.sound.play(top.audio)
@@ -150,7 +156,7 @@ def on_editor_btn_click(editor: Editor, choose_automatically: Union[None, bool] 
                         except FieldNotFoundException:
                             showWarning(
                                 "Couldn't find field '%s' for adding the audio string. Please create a field with this name or change it in the config for the note type id %s" % (
-                                    audio_field, str(note_type_id)))
+                                    audio_field, str(note_type_id)), editor.widget)
                         if not editor.addMode:
                             editor.note.flush()
                         editor.loadNote()
@@ -199,12 +205,13 @@ def add_editor_button(buttons: List[str], editor: Editor):
         iconstr = "/_anki/imgs/{}.png".format(os.path.join(asset_dir, "icon.png"))
 
     return buttons + [
-        "<div title=\"Hold down shift + click to select top audio\n\nCTRL+F to open window\nCTRL+SHIFT+F to select top audio\" style=\"float: right; margin: 0 3px\"><div style=\"display: flex; width: 50px; height: 25px; justify-content: center; align-items: center; padding: 0 5px; border-radius: 5px; background-color: #0094FF; color: #ffffff; font-size: 10px\" onclick=\"pycmd('forvo_dl');return false;\"><img style=\"margin-right: 5px; margin-left: 5px; height: 20px; width: 20px\" src=\"%s\"/><b style=\"user-select: none; margin-right: 7px\">Forvo</b></div></div>" % iconstr]
+        "<div title=\"Hold down shift + click to select top audio\n\nCTRL+F to open window\nCTRL+SHIFT+F to select top audio\nCTRL+S to search for custom term\" style=\"float: right; margin: 0 3px\"><div style=\"display: flex; width: 50px; height: 25px; justify-content: center; align-items: center; padding: 0 5px; border-radius: 5px; background-color: #0094FF; color: #ffffff; font-size: 10px\" onclick=\"pycmd('forvo_dl');return false;\"><img style=\"margin-right: 5px; margin-left: 5px; height: 20px; width: 20px\" src=\"%s\"/><b style=\"user-select: none; margin-right: 7px\">Forvo</b></div></div>" % iconstr]
 
 
 def add_editor_shortcut(shortcuts: List[Tuple], editor: Editor):
-    shortcuts.append(("Ctrl+F", lambda: on_editor_btn_click(editor, False)))
-    shortcuts.append(("Ctrl+Shift+F", lambda: on_editor_btn_click(editor, True)))
+    shortcuts.append(("Ctrl+S", lambda: on_editor_btn_click(editor, 'input')))
+    shortcuts.append(("Ctrl+F", lambda: on_editor_btn_click(editor, 'select')))
+    shortcuts.append(("Ctrl+Shift+F", lambda: on_editor_btn_click(editor, 'auto')))
 
 
 def add_browser_context_menu_entry(browser: Browser, m: QMenu):

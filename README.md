@@ -27,6 +27,7 @@ You can also hold down the shift key when pressing the blue Forvo button in the 
 Other shortcuts:
 - ctrl + F: Open forvo window
 - ctrl + shift + F: Add top pronunciation
+- ctrl + s: Open a dialog for entering a custom search term; this can be handy if you want to have e.g. "to discover" on your note, but forvo only has "discover".
 
 <b>Using the bulk-add mode</b>
 
