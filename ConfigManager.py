@@ -10,7 +10,9 @@ class ConfigManager(QDialog):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
-        description = "<h1>Settings</h1>"
+        description = "<h2>General Settings</h1>"
 
         self.layout
+
+
 

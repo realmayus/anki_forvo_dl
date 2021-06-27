@@ -13,7 +13,7 @@ from aqt.utils import showInfo, showWarning
 from .About import About
 from .AddSingle import AddSingle
 from .BulkAdd import BulkAdd
-from .Config import Config, ConfigObject
+from .Config import Config, ConfigObject, OptionType
 from .ConfigManager import ConfigManager
 from .Exceptions import NoResultsException, FieldNotFoundException
 from .FieldSelector import FieldSelector
@@ -41,7 +41,7 @@ config = Config(os.path.join(user_files_dir, "config.json"),
 def _handle_field_select(d, note_type_id, field_type, editor):
     if d.selected_field is not None:
         config.set_note_type_specific_config_object(
-            ConfigObject(name=field_type, value=d.selected_field, note_type=note_type_id))
+            ConfigObject(name=field_type, value=d.selected_field, note_type=note_type_id, type=OptionType.TEXT))
         on_editor_btn_click(editor, False)
     else:
         showInfo("Cancelled download because fields weren't selected.", editor.widget)
@@ -104,8 +104,7 @@ def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
                 if forvo is not None:
                     results = forvo.get_pronunciations().pronunciations
                 else:
-                    raise Exception()
-                    return
+                    raise NoResultsException()
             except NoResultsException:
                 showInfo("No results found! :(", editor.widget)
                 return
@@ -250,3 +249,7 @@ about = About(mw)
 addHook("setupEditorButtons", add_editor_button)
 gui_hooks.browser_will_show_context_menu.append(add_browser_context_menu_entry)
 gui_hooks.editor_did_init_shortcuts.append(add_editor_shortcut)
+
+action = QAction("anki-forvo-dl Preferences", aqt.mw)
+action.triggered.connect(lambda: showInfo("こんにちは！"))  # type: ignore
+aqt.mw.form.menuTools.addAction(action)  # type: ignore

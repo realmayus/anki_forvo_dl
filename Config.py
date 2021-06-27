@@ -1,7 +1,10 @@
 import copy
 import json
 import os
+
+from aqt.utils import showInfo
 from dataclasses import dataclass
+from enum import Enum
 
 
 class ConfigObjectHasNoValue(Exception):
@@ -68,6 +71,7 @@ class Config:
     def get_config_object(self, name) -> 'ConfigObject':
         return ConfigObject(
             name,
+            any,
             self.template[name]["friendly"],
             self.template[name]["description"],
             self.template[name].get("default", None) or None,
@@ -81,6 +85,7 @@ class Config:
                 if name in deck.keys():
                     return ConfigObject(
                         name,
+                        OptionType.TEXT,
                         self.template["deckSpecific"][name]["friendly"],
                         self.template["deckSpecific"][name]["description"],
                         self.template["deckSpecific"][name].get("default", None) or None,
@@ -98,6 +103,7 @@ class Config:
                 if name in note_type.keys():
                     return ConfigObject(
                         name,
+                        OptionType.TEXT,
                         self.template["noteTypeSpecific"][name]["friendly"],
                         self.template["noteTypeSpecific"][name]["description"],
                         self.template["noteTypeSpecific"][name].get("default", None) or None,
@@ -139,11 +145,19 @@ class Config:
             return self.template[category][option]
 
 
+class OptionType(Enum):
+    BOOLEAN = "boolean"
+    LANG = "lang"
+    STRINGLIST = "stringlist"
+    CHOICE = "choice"
+    TEXT = "text"
+
 @dataclass
 class ConfigObject:
     """A config 'option' that contains more than is actually saved in config.json -
     it basically merges the template information and the config value into a single object."""
     name: str
+    type: OptionType
     friendly: str = None
     description: str = None
     default: any = None
