@@ -1,5 +1,5 @@
 # anki-forvo-dl
-<b>An add-on that allows you to (bulk-) add <a href="http://Forvo.com" rel="nofollow">Forvo.com</a> pronunciations to your anki cards - fully automatically</b>
+<b>An add-on that allows you to add <a href="http://Forvo.com" rel="nofollow">Forvo.com</a> pronunciations to your anki cards - fully automatically</b>
 
 ## Download
 You can download the plugin using anki. Open the add-on manager by clicking Tools > Add-ons and press "Get Add-ons...".
