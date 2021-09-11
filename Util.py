@@ -3,7 +3,7 @@ import platform
 import subprocess
 from dataclasses import dataclass
 
-from PyQt5.QtWidgets import QScrollBar
+from PyQt5.QtWidgets import QScrollBar, QWidget
 from anki.cards import Card
 from anki.notes import Note
 
@@ -70,3 +70,14 @@ def log_debug(msg):
     if debug_mode:
         with open(os.path.join(user_files_dir, "logs", "debug"), "a", encoding="utf8") as f:
             f.write(msg + "\n")
+
+
+def delete_layout_contents(layout):
+    if layout is not None:
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+            else:
+                delete_layout_contents(item.layout())

@@ -1,3 +1,5 @@
+from typing import List
+
 import copy
 import json
 import os
@@ -61,22 +63,57 @@ class Config:
     def set_config_object(self, config_object: 'ConfigObject'):
         self.config[config_object.name] = config_object.value
         self._save()
+        self.load_config()
 
-    def get_config_objects(self):
+
+    def get_config_options(self):
         config_dupe = copy.deepcopy(self.config)
         config_dupe.pop("noteTypeSpecific", None)
         config_dupe.pop("deckSpecific", None)
         return config_dupe
 
+    def get_config_objects_template(self):
+        general_options = [x for x in self.template.keys() if x != "noteTypeSpecific" and x != "deckSpecific"]
+        objects = []
+        for option in general_options:
+            objects.append(self.get_config_object(option))
+
+        return objects
+
+    def get_nt_config_objects_template(self, note_type_id: int):
+        options = [x for x in self.template["noteTypeSpecific"]]
+        objects = []
+        for option in options:
+            objects.append(self.get_note_type_specific_config_object(option, note_type_id))
+
+        return objects
+
+
+    def get_deck_config_objects_template(self, deck_id: int):
+        """Goes through all options in the *template* and then populates them with the actual values from the
+        configuration.  """
+        options = [x for x in self.template["deckSpecific"]]
+        objects = []
+        for option in options:
+            objects.append(self.get_deck_specific_config_object(option, deck_id))
+
+        return objects
+
+
     def get_config_object(self, name) -> 'ConfigObject':
         return ConfigObject(
             name,
-            any,
+            OptionType(self.template[name]["type"]),
             self.template[name]["friendly"],
             self.template[name]["description"],
             self.template[name].get("default", None) or None,
-            self.get_config_objects()[name]
+            self.get_config_options()[name],
+            options=self.template[name]["options"] if OptionType(self.template[name]["type"]) is OptionType.CHOICE else None
         )
+
+    def get_specified_deck_ids(self) -> List[int]:
+        """Returns a list of decks that are defined in the config."""
+        return [deck["id"] for deck in self.config["deckSpecific"]]
 
     def get_deck_specific_config_object(self, name: str, deck_id: int) -> 'ConfigObject':
         for deck in self.config["deckSpecific"]:
@@ -85,7 +122,7 @@ class Config:
                 if name in deck.keys():
                     return ConfigObject(
                         name,
-                        OptionType.TEXT,
+                        OptionType(self.template["deckSpecific"][name]["type"]),
                         self.template["deckSpecific"][name]["friendly"],
                         self.template["deckSpecific"][name]["description"],
                         self.template["deckSpecific"][name].get("default", None) or None,
@@ -96,6 +133,10 @@ class Config:
                     return None
         return None
 
+    def get_specified_note_type_ids(self) -> List[int]:
+        """Returns a list of note types that are defined in the config."""
+        return [nt["id"] for nt in self.config["noteTypeSpecific"]]
+
     def get_note_type_specific_config_object(self, name: str, note_type_id: int) -> 'ConfigObject':
         for note_type in self.config["noteTypeSpecific"]:
             note_type: dict
@@ -103,7 +144,7 @@ class Config:
                 if name in note_type.keys():
                     return ConfigObject(
                         name,
-                        OptionType.TEXT,
+                        OptionType(self.template["noteTypeSpecific"][name]["type"]),
                         self.template["noteTypeSpecific"][name]["friendly"],
                         self.template["noteTypeSpecific"][name]["description"],
                         self.template["noteTypeSpecific"][name].get("default", None) or None,
@@ -125,6 +166,7 @@ class Config:
         existing.append(existing_options_for_deck)
         self.config["deckSpecific"] = existing
         self._save()
+        self.load_config()
 
     def set_note_type_specific_config_object(self, config_object: 'ConfigObject', use_default_as_fallback=False):
         existing: list = self.config["noteTypeSpecific"]
@@ -137,6 +179,8 @@ class Config:
         existing.append(existing_options_for_note_type)
         self.config["noteTypeSpecific"] = existing
         self._save()
+        self.load_config()
+
 
     def get_template(self, option: str, category=None):
         if category is None:
@@ -148,6 +192,7 @@ class Config:
 class OptionType(Enum):
     BOOLEAN = "boolean"
     LANG = "lang"
+    COUNTRY = "country"
     STRINGLIST = "stringlist"
     CHOICE = "choice"
     TEXT = "text"
@@ -164,3 +209,4 @@ class ConfigObject:
     value: any = None
     deck: int = None  # Only if deck-specific
     note_type: int = None  # Only if note type-specific
+    options: List[str] = None # Only if type=choice
