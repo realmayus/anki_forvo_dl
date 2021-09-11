@@ -1,6 +1,6 @@
 import pathlib
 from typing import List, Tuple
-from bs4 import BeautifulSoup
+
 import anki
 import aqt.utils
 from anki.hooks import addHook
@@ -9,6 +9,7 @@ from aqt.browser import Browser
 from aqt.editor import Editor
 from aqt.qt import *
 from aqt.utils import showInfo, showWarning
+from bs4 import BeautifulSoup
 
 from .About import About
 from .AddSingle import AddSingle
@@ -80,7 +81,8 @@ def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
         return
 
     if mode == 'input':
-        query, suc = aqt.utils.getText("Please enter a custom search term:", editor.widget, title="Enter custom search term")
+        query, suc = aqt.utils.getText("Please enter a custom search term:", editor.widget,
+                                       title="Enter custom search term")
         if not suc:
             showWarning("Didn't get any text, please try again.", editor.widget)
             return
@@ -100,7 +102,8 @@ def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
             d = LanguageSelector(editor.parentWindow, mw.col.decks.get(deck_id)["name"])
             d.exec()
             if d.selected_lang is not None:
-                config.set_deck_specific_config_object(ConfigObject(name="language", value=d.selected_lang, deck=deck_id))
+                config.set_deck_specific_config_object(
+                    ConfigObject(name="language", value=d.selected_lang, deck=deck_id, type=OptionType.LANG))
                 language = d.selected_lang
             else:
                 showInfo("Cancelled download because no language was selected.")
@@ -162,11 +165,19 @@ def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
             Forvo.cleanup()
             if dialog.selected_pronunciation is not None:
                 try:
-                    if config.get_config_object("appendAudio").value:
+                    add_mode = config.get_config_object("audioFieldAddMode").value
+                    if add_mode == "append":
                         editor.note.fields[
                             get_field_id(audio_field,
                                          editor.note)] += "[sound:%s]" % dialog.selected_pronunciation.audio
-                    else:
+                    elif add_mode == "prepend":
+                        editor.note.fields[
+                            get_field_id(audio_field,
+                                         editor.note)] = "[sound:%s]" % dialog.selected_pronunciation.audio + \
+                                                         editor.note.fields[
+                                                             get_field_id(audio_field,
+                                                                          editor.note)]
+                    elif add_mode == "replace":
                         editor.note.fields[
                             get_field_id(audio_field,
                                          editor.note)] = "[sound:%s]" % dialog.selected_pronunciation.audio
@@ -181,21 +192,6 @@ def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
 
 def on_editor_btn_click(editor: Editor, mode: Union[None, str] = None):
     editor.saveNow(lambda: add_pronunciation(editor, mode))
-
-
-def on_browser_ctx_menu_click(browser: Browser, selected):
-    cards = [browser.mw.col.getCard(card) for card in selected]
-    unique_cards = []
-    addressed_unique_cards = []
-    for card in cards:
-        if card.nid in addressed_unique_cards:
-            continue
-        unique_cards.append(card)
-        addressed_unique_cards.append(card.nid)
-
-    showWarning("<b>Use bulk add at your own peril!</b><br/>Users have been getting IP-banned in the past, meaning that they can't access Forvo anymore on their normal IP without a VPN. Bulk add is discouraged as it spams Forvo's servers with requests.", browser.mw, title="Warning")
-    dialog = BulkAdd(browser.window(), unique_cards, browser.mw, config)
-    dialog.show()
 
 
 def add_editor_button(buttons: List[str], editor: Editor):
@@ -219,8 +215,10 @@ def on_pref_btn_click():
     config_manager = ConfigManager(config)
     config_manager.exec()
 
+
 def on_about_btn_click():
     showInfo("こんにちは！\nMade by realmayus.\nPlease see https://github.com/realmayus/anki_forvo_dl for more information.")
+
 
 about = About(mw)
 addHook("setupEditorButtons", add_editor_button)
