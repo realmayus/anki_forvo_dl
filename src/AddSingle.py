@@ -11,7 +11,7 @@ from .Util import CustomScrollbar
 
 class PronunciationWidget(QWidget):
     def __init__(self, pronunciation: Pronunciation, select_pronunciation, parent=None):
-        from anki_forvo_dl import asset_dir
+        from .. import asset_dir
         super(PronunciationWidget, self).__init__(parent)
         container = QWidget(self)
         container.setFixedWidth(450)

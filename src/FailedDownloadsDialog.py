@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QListWidget, QListWidg
 from anki.cards import Card
 from aqt.browser import Browser
 
-from anki_forvo_dl import Config
+from .Config import Config
 from .Exceptions import all_errors
 from .Util import FailedDownload, open_file
 
@@ -44,7 +44,7 @@ class FailedListWidgetItemWidget(QWidget):
 class FailedDownloadsDialog(QDialog):
 
     def __init__(self, parent, failed, mw, config: Config, skipped_cards: int):
-        from anki_forvo_dl import log_dir
+        from .. import log_dir
         super().__init__(parent)
 
         self.parent = parent

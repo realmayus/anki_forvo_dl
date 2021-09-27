@@ -22,7 +22,7 @@ from .src.Util import get_field_id
 
 
 """Release:"""
-release_ver = "1.0.1"
+release_ver = "1.0.2"
 
 
 """Paths to directories get determined based on __file__"""

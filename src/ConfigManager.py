@@ -14,7 +14,7 @@ class ConfigManager(QDialog):
 
     def __init__(self, config: Config):
         """Initializes the window."""
-        from anki_forvo_dl import asset_dir
+        from .. import asset_dir
         super().__init__()
 
         self.mw = aqt.mw

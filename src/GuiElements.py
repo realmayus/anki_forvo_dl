@@ -49,7 +49,7 @@ class ControlElement:
         h_layout.addWidget(self.edit_control)
 
     def render_entries(self):
-        from anki_forvo_dl import asset_dir
+        from .. import asset_dir
         for item in self.state:
             h_layout = QHBoxLayout()
             if len(item) == 0:  # is editing
