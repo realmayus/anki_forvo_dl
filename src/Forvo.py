@@ -10,7 +10,6 @@ from urllib.error import HTTPError
 
 from aqt import AnkiQt
 from bs4 import BeautifulSoup, Tag
-
 from . import Config
 from .Exceptions import NoResultsException
 from .Util import log_debug
@@ -34,7 +33,7 @@ class Pronunciation:
 
     def download_pronunciation(self):
         """Downloads the pronunciation using the pronunciation url in the pronunciation object, adds the audio to Anki's DB and stores the media id in the pronunciation object."""
-        from . import temp_dir
+        from anki_forvo_dl import temp_dir
         req = urllib.request.Request(self.download_url)
         dl_path = os.path.join(temp_dir, "pronunciation_" + self.language + "_" + self.word + (
             ".ogg" if self.is_ogg else ".mp3"))
@@ -168,6 +167,6 @@ class Forvo:
     @staticmethod
     def cleanup():
         """Removes any files in the /temp directory."""
-        from . import temp_dir
+        from anki_forvo_dl import temp_dir
         for f in os.listdir(temp_dir):
             os.remove(os.path.join(temp_dir, f))

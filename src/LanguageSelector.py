@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QComboBox, QPushButton
 class LanguageSelector(QDialog):
 
     def __init__(self, parent, deck_name):
-        from . import asset_dir
+        from anki_forvo_dl import asset_dir
         super().__init__(parent)
         self.setWindowTitle("Select Language")
         self.setFixedWidth(400)

@@ -6,15 +6,15 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QLayout, QLineEdit, QComboBox, QCheckBox, QHBoxLayout
 
 from anki_forvo_dl import Config, ConfigObject, OptionType
-from anki_forvo_dl.GuiElements import StringListControl, CountryListControl
-from anki_forvo_dl.Util import delete_layout_contents
+from anki_forvo_dl.src.GuiElements import StringListControl
+from anki_forvo_dl.src.Util import delete_layout_contents
 
 
 class ConfigManager(QDialog):
 
     def __init__(self, config: Config):
         """Initializes the window."""
-        from . import asset_dir
+        from anki_forvo_dl import asset_dir
         super().__init__()
 
         self.mw = aqt.mw
@@ -182,7 +182,8 @@ class ConfigManager(QDialog):
             layout.addWidget(language_select)
 
         elif config_object.type is OptionType.COUNTRY:
-            CountryListControl(config_object.name, config_object, layout, self, lambda new: self.update_state(option_name, new, note_type_id, deck_id), self.country_list)
+            pass
+            # CountryListControl(config_object.name, config_object, layout, self, lambda new: self.update_state(option_name, new, note_type_id, deck_id), self.country_list)
 
         elif config_object.type is OptionType.TEXT:
             control = QLineEdit(config_object.value)

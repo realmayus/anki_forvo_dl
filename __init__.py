@@ -5,21 +5,20 @@ import anki
 import aqt.utils
 from anki.hooks import addHook
 from aqt import mw, gui_hooks
-from aqt.browser import Browser
 from aqt.editor import Editor
 from aqt.qt import *
 from aqt.utils import showInfo, showWarning
 from bs4 import BeautifulSoup
 
-from .About import About
-from .AddSingle import AddSingle
-from .Config import Config, ConfigObject, OptionType
-from .ConfigManager import ConfigManager
-from .Exceptions import NoResultsException, FieldNotFoundException
-from .FieldSelector import FieldSelector
-from .Forvo import Forvo, Pronunciation
-from .LanguageSelector import LanguageSelector
-from .Util import get_field_id
+from .src.About import About
+from .src.AddSingle import AddSingle
+from .src.Config import Config, ConfigObject, OptionType
+from .src.ConfigManager import ConfigManager
+from .src.Exceptions import NoResultsException, FieldNotFoundException
+from .src.FieldSelector import FieldSelector
+from .src.Forvo import Forvo, Pronunciation
+from .src.LanguageSelector import LanguageSelector
+from .src.Util import get_field_id
 
 """Paths to directories get determined based on __file__"""
 asset_dir = os.path.join(pathlib.Path(__file__).parent.absolute(), "assets")

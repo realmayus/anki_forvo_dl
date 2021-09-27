@@ -66,7 +66,7 @@ def open_file(path):
 
 
 def log_debug(msg):
-    from . import user_files_dir, debug_mode
+    from anki_forvo_dl import user_files_dir, debug_mode
     if debug_mode:
         with open(os.path.join(user_files_dir, "logs", "debug"), "a", encoding="utf8") as f:
             f.write(msg + "\n")

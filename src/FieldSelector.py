@@ -1,9 +1,8 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLabel, QVBoxLayout, QDialog, QRadioButton, QPushButton, QButtonGroup
-from anki.models import NoteType
 from aqt import AnkiQt
 
-from . import Config
+from anki_forvo_dl import Config
 
 
 class FieldSelector(QDialog):
