@@ -20,6 +20,11 @@ from .src.Forvo import Forvo, Pronunciation
 from .src.LanguageSelector import LanguageSelector
 from .src.Util import get_field_id
 
+
+"""Release:"""
+release_ver = "1.0.1"
+
+
 """Paths to directories get determined based on __file__"""
 asset_dir = os.path.join(pathlib.Path(__file__).parent.absolute(), "assets")
 temp_dir = os.path.join(pathlib.Path(__file__).parent.absolute(), "temp")
@@ -55,7 +60,14 @@ def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
             mode = "auto"
 
     deck_id = editor.card.did if editor.card is not None else editor.parentWindow.deckChooser.selectedId()
-    note_type_id = editor.card.note().mid if editor.card is not None else editor.mw.col.models.current()["id"]
+
+    if editor.note is not None:
+        note_type_id = editor.note.mid
+    elif editor.card is not None:
+        note_type_id = editor.card.note().mid
+    else:
+        note_type_id = editor.mw.col.models.current()["id"]
+
     search_field = config.get_note_type_specific_config_object("searchField", note_type_id)
     if search_field is None or search_field.value not in editor.note.keys():
         d = FieldSelector(editor.parentWindow, editor.mw, note_type_id, "searchField", config)
@@ -201,7 +213,7 @@ def add_editor_button(buttons: List[str], editor: Editor):
         iconstr = "/_anki/imgs/{}.png".format(os.path.join(asset_dir, "icon.png"))
 
     return buttons + [
-        "<div title=\"Hold down shift + click to select top audio\n\nCTRL+F to open window\nCTRL+SHIFT+F to select top audio\nCTRL+S to search for custom term\" style=\"float: right; margin: 0 3px\"><div style=\"display: flex; width: 50px; height: 25px; justify-content: center; align-items: center; padding: 0 5px; border-radius: 5px; background-color: #0094FF; color: #ffffff; font-size: 10px\" onclick=\"pycmd('forvo_dl');return false;\"><img style=\"margin-right: 5px; margin-left: 5px; height: 20px; width: 20px\" src=\"%s\"/><b style=\"user-select: none; margin-right: 7px\">Forvo</b></div></div>" % iconstr]
+        "<div title=\"Hold down shift + click to select top audio\n\nCTRL+F to open window\nCTRL+SHIFT+F to select top audio\nCTRL+S to search for custom term\" style=\"float: right; margin: 0 3px\"><div style=\"display: flex; width: 50px; height: 25px; justify-content: center; align-items: center; padding: 0 5px; border-radius: 5px; background-color: #0094FF; color: #ffffff; font-size: 10px\" onclick=\"pycmd('forvo_dl');return false;\"><img style=\"height: 20px; width: 20px\" src=\"%s\"/></div></div>" % iconstr]
 
 
 def add_editor_shortcut(shortcuts: List[Tuple], editor: Editor):
@@ -216,7 +228,7 @@ def on_pref_btn_click():
 
 
 def on_about_btn_click():
-    showInfo("こんにちは！\nMade by realmayus.\nPlease see https://github.com/realmayus/anki_forvo_dl for more information.")
+    showInfo(f"VERSION: v.{release_ver}\n\n-----------\n\nこんにちは！\nMade by realmayus.\nPlease see https://github.com/realmayus/anki_forvo_dl for more information.")
 
 
 about = About(mw)
