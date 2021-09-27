@@ -7,7 +7,7 @@ from anki.cards import Card
 from aqt.browser import Browser
 
 from anki_forvo_dl import Config
-from . import Exceptions
+from .Exceptions import all_errors
 from .Util import FailedDownload, open_file
 
 
@@ -44,7 +44,7 @@ class FailedListWidgetItemWidget(QWidget):
 class FailedDownloadsDialog(QDialog):
 
     def __init__(self, parent, failed, mw, config: Config, skipped_cards: int):
-        from . import log_dir
+        from anki_forvo_dl import log_dir
         super().__init__(parent)
 
         self.parent = parent
@@ -74,7 +74,7 @@ class FailedDownloadsDialog(QDialog):
         for fail in self.failed:
             # Show traceback for debugging:
             # showInfo(''.join(traceback.format_tb(fail.reason.__traceback__)))
-            error_instance = next((e for e in Exceptions.all_errors if isinstance(fail.reason, e)), None)
+            error_instance = next((e for e in all_errors if isinstance(fail.reason, e)), None)
 
             if error_instance is not None:
                 if error_instance in reasons.keys():

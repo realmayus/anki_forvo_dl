@@ -10,7 +10,7 @@ from urllib.error import HTTPError
 
 from aqt import AnkiQt
 from bs4 import BeautifulSoup, Tag
-from . import Config
+from .Config import Config
 from .Exceptions import NoResultsException
 from .Util import log_debug
 

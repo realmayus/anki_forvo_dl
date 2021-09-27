@@ -2,7 +2,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLabel, QVBoxLayout, QDialog, QRadioButton, QPushButton, QButtonGroup
 from aqt import AnkiQt
 
-from anki_forvo_dl import Config
+from .Config import Config
 
 
 class FieldSelector(QDialog):

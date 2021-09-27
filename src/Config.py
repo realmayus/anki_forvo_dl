@@ -4,7 +4,6 @@ import copy
 import json
 import os
 
-from aqt.utils import showInfo
 from dataclasses import dataclass
 from enum import Enum
 

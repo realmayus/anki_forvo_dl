@@ -5,9 +5,9 @@ import aqt
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QLayout, QLineEdit, QComboBox, QCheckBox, QHBoxLayout
 
-from anki_forvo_dl import Config, ConfigObject, OptionType
-from anki_forvo_dl.src.GuiElements import StringListControl
-from anki_forvo_dl.src.Util import delete_layout_contents
+from .Config import Config, ConfigObject, OptionType
+from .GuiElements import StringListControl
+from .Util import delete_layout_contents
 
 
 class ConfigManager(QDialog):
