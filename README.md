@@ -33,7 +33,7 @@ When adding audio to a card that's part of a deck that isn't known by anki-forvo
 
 <b>Editing the config</b>
 
-<b>Note:</b> As of now, you will have to edit the config manually. To do that, go to Tools &gt; Add-ons &gt; Select anki_forvo_dl &gt; View Files. Then open the user_files directory and open the config.json file.
+As of the newest version, there's a config manager! Just click on Tools>anki-forvo-dl>Preferences to open it. For deck-specific or note type-specific settings select your deck / note type first and adjust the settings to your liking.
 
 <b>Liability</b>
 
