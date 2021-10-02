@@ -247,7 +247,6 @@ def show_whats_new():
     config_ver_obj = config.get_config_object("configVersion")
     config_ver = config_ver_obj.value
     changelogs = get_changelogs(config_ver)
-    showInfo(f"Config ver: {config_ver}, release ver: {release_ver}")
     if parse_version(config_ver) < parse_version(release_ver) and changelogs is not None:
         whatsnew = WhatsNew(mw, changelogs)
         whatsnew.exec()
