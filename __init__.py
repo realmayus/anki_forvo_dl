@@ -1,5 +1,6 @@
+import functools
 import pathlib
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import os
 import anki
 import aqt.utils
@@ -23,7 +24,7 @@ from .src.WhatsNew import get_changelogs, WhatsNew
 
 
 """Release:"""
-release_ver = "1.0.3"
+release_ver = "1.0.4"
 
 
 """Paths to directories get determined based on __file__"""
@@ -81,7 +82,7 @@ def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
     if audio_field is None or audio_field.value not in editor.note.keys():
         d = FieldSelector(editor.parentWindow, editor.mw, note_type_id, "audioField", config)
         d.exec()
-        handle_field_select(d, note_type_id, "audioField", editor)
+        audio_field = handle_field_select(d, note_type_id, "audioField", editor)
         if audio_field is None:
             return
 
@@ -133,11 +134,21 @@ def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
             showInfo("No results found! :(", editor.widget)
             return
 
+        hidden_entries_amount = 0
+        if config.get_config_object("skipOggFallback").value:
+            viable_entries = [p for p in results if not p.is_ogg]
+            hidden_entries_amount = len(results) - len(viable_entries)
+            if len(viable_entries) == 0:
+                showInfo(f"No results found! :(\nThere are {hidden_entries_amount} entries which you chose to skip by deactivating .ogg fallback.")
+                return
+            results = viable_entries
+
+
         if mode == "auto":
-            def add_automatically():
+            def add_automatically(auto_results):
                 """If shift key is held down"""
-                results.sort(key=lambda result: result.votes)  # sort by votes
-                top: Pronunciation = results[len(results) - 1]  # get most upvoted pronunciation
+                auto_results.sort(key=lambda result: result.votes)  # sort by votes
+                top: Pronunciation = auto_results[len(auto_results) - 1]  # get most upvoted pronunciation
                 top.download_pronunciation()  # download that
                 try:
                     if config.get_config_object("audioFieldAddMode").value == "append":
@@ -169,9 +180,9 @@ def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
 
                 editor.saveNow(flush_field, keepFocus=True)
 
-            editor.saveNow(add_automatically, keepFocus=False)
+            editor.saveNow(functools.partial(add_automatically, results), keepFocus=False)
         else:
-            dialog = AddSingle(editor.parentWindow, pronunciations=results)
+            dialog = AddSingle(editor.parentWindow, pronunciations=results, hidden_entries_amount=hidden_entries_amount)
             dialog.exec()
 
             Forvo.cleanup()

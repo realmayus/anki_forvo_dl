@@ -1,3 +1,7 @@
+#1.0.4
+- Added option to deactivate .ogg fallback
+- Fixed bug when selecting fields (window would close without showing the language selection dialog)
+
 #1.0.3
 - Added What's New dialog
 - Fixed issue that would crash the preferences dialog

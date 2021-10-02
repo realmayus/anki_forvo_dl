@@ -60,5 +60,11 @@
     "description": "The current version of the config. Used for displaying the 'What's New' dialog.",
     "default": "1.0.0",
     "type": "text"
+  },
+  "skipOggFallback": {
+    "friendly": "Deactivate .ogg file fallback",
+    "description": "Sometimes, only .ogg files are available. These unfortunately don't work on anki's iOS app and are slightly bigger in size. This option allows you to skip those entries and remove them from the pronunciation list.",
+    "default": false,
+    "type": "boolean"
   }
 }
