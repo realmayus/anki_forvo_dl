@@ -54,5 +54,11 @@
         "・", "~", "。", "."
     ],
     "type": "stringlist"
+  },
+  "configVersion": {
+    "friendly": "#Config version",
+    "description": "The current version of the config. Used for displaying the 'What's New' dialog.",
+    "default": "1.0.0",
+    "type": "text"
   }
 }

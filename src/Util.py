@@ -81,3 +81,7 @@ def delete_layout_contents(layout):
                 widget.deleteLater()
             else:
                 delete_layout_contents(item.layout())
+
+
+def parse_version(version):
+    return tuple(map(int, (version.split("."))))

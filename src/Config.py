@@ -196,6 +196,7 @@ class OptionType(Enum):
     CHOICE = "choice"
     TEXT = "text"
 
+
 @dataclass
 class ConfigObject:
     """A config 'option' that contains more than is actually saved in config.json -

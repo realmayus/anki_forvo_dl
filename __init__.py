@@ -1,6 +1,6 @@
 import pathlib
 from typing import List, Tuple
-
+import os
 import anki
 import aqt.utils
 from anki.hooks import addHook
@@ -18,11 +18,12 @@ from .src.Exceptions import NoResultsException, FieldNotFoundException
 from .src.FieldSelector import FieldSelector
 from .src.Forvo import Forvo, Pronunciation
 from .src.LanguageSelector import LanguageSelector
-from .src.Util import get_field_id
+from .src.Util import get_field_id, parse_version
+from .src.WhatsNew import get_changelogs, WhatsNew
 
 
 """Release:"""
-release_ver = "1.0.2"
+release_ver = "1.0.3"
 
 
 """Paths to directories get determined based on __file__"""
@@ -231,9 +232,23 @@ def on_about_btn_click():
     showInfo(f"VERSION: v.{release_ver}\n\n-----------\n\nこんにちは！\nMade by realmayus.\nPlease see https://github.com/realmayus/anki_forvo_dl for more information.")
 
 
+def show_whats_new():
+    config_ver_obj = config.get_config_object("configVersion")
+    config_ver = config_ver_obj.value
+    changelogs = get_changelogs(config_ver)
+    showInfo(f"Config ver: {config_ver}, release ver: {release_ver}")
+    if parse_version(config_ver) < parse_version(release_ver) and changelogs is not None:
+        whatsnew = WhatsNew(mw, changelogs)
+        whatsnew.exec()
+        config_ver_obj.value = release_ver
+        config.set_config_object(config_ver_obj)
+
+
 about = About(mw)
 addHook("setupEditorButtons", add_editor_button)
 gui_hooks.editor_did_init_shortcuts.append(add_editor_shortcut)
+
+gui_hooks.main_window_did_init.append(show_whats_new)
 
 menu = QMenu("anki-forvo-dl", aqt.mw)
 pref_action = QAction("Preferences", menu)

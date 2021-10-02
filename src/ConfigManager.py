@@ -48,6 +48,8 @@ class ConfigManager(QDialog):
 
         for item in self.config.get_config_objects_template():
             item: ConfigObject
+            if item.friendly.startswith("#"):
+                continue  # skip hidden items
             self.add_control_element(self.general_col, item, item.name)
 
 
@@ -120,7 +122,7 @@ class ConfigManager(QDialog):
 
 
         for nt_id in config.get_specified_note_type_ids():  # populate the dropdown with all available NTs
-            self.nt_selector.addItem(str(next(nt.name for nt in self.mw.col.models.all_names_and_ids() if nt.id == nt_id)), nt_id)
+            self.nt_selector.addItem(str(next((nt.name for nt in self.mw.col.models.all_names_and_ids() if nt.id == nt_id), "<no name>")), nt_id)
 
         self.nt_col.addLayout(selector)  # add the selector layout to the deck column
 
@@ -143,6 +145,8 @@ class ConfigManager(QDialog):
             if item is None:
                 continue
             item: ConfigObject
+            if item.friendly.startswith("#"):
+                continue  # skip hidden items
             self.add_control_element(self.inner_deck_col, item, item.name, deck_id=self.deck_selector.currentData())
 
     def draw_nt_elements(self):
@@ -152,6 +156,8 @@ class ConfigManager(QDialog):
             if item is None:
                 continue
             item: ConfigObject
+            if item.friendly.startswith("#"):
+                continue  # skip hidden items
             self.add_control_element(self.inner_nt_col, item, item.name, note_type_id=self.nt_selector.currentData())
 
     def add_control_element(self, layout: QLayout, config_object: ConfigObject, option_name: str, note_type_id=None, deck_id=None):

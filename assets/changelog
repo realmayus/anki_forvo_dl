@@ -1,0 +1,7 @@
+#1.0.3
+- Added What's New dialog
+- Fixed issue that would crash the preferences dialog
+
+#1.0.0
+- Added preferences dialog
+- Added semantic versioning
