@@ -65,6 +65,9 @@ def remove_language_specific_annotations_from_query_string(query: str, language:
     if language == "ja":
         # remove furigana annotation from japanese query
         query = re.sub(r"\[[^\]]*\]", "", query)
+        # remove spaces because they're usually not a thing in japanese
+        # and are often used in the furigana annotation to separate words
+        query = re.sub(r"\s", "", query)
     return query
 
 
