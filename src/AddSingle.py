@@ -6,7 +6,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
 from .Forvo import Pronunciation
-from .Util import CustomScrollbar
+from anki_forvo_dl.src.util.Util import CustomScrollbar
 
 
 class PronunciationWidget(QWidget):

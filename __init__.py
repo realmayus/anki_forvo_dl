@@ -19,7 +19,7 @@ from .src.Exceptions import NoResultsException, FieldNotFoundException
 from .src.FieldSelector import FieldSelector
 from .src.Forvo import Forvo, Pronunciation
 from .src.LanguageSelector import LanguageSelector
-from .src.Util import get_field_id, parse_version
+from .src.util.Util import get_field_id, parse_version
 from .src.WhatsNew import get_changelogs, WhatsNew
 
 

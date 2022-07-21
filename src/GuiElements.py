@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QLayout, QDialog, QPushButton, QVBoxLayout, QWidget,
     QComboBox
 
 from .Config import ConfigObject
-from .Util import delete_layout_contents
+from anki_forvo_dl.src.util.Util import delete_layout_contents
 
 import os
 

@@ -9,10 +9,11 @@ from typing import List, Union
 from urllib.error import HTTPError
 
 from aqt import AnkiQt
+from aqt.utils import showInfo
 from bs4 import BeautifulSoup, Tag
 from .Config import Config
 from .Exceptions import NoResultsException
-from .Util import log_debug
+from .util.Util import log_debug
 
 search_url = "https://forvo.com/word/"
 download_url = "https://forvo.com/download/mp3/"
@@ -51,8 +52,8 @@ class Pronunciation:
         self.audio = None
 
 
-def prepare_query_string(input: str, config: Config) -> str:
-    query = str(input)  # clone
+def prepare_query_string(input_str: str, config: Config) -> str:
+    query = str(input_str)  # clone
     query = query.strip()
     for char in config.get_config_object("replaceCharacters").value:
         query = query.replace(char, "")

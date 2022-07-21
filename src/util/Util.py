@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QScrollBar, QWidget
 from anki.cards import Card
 from anki.notes import Note
 
-from .Exceptions import FieldNotFoundException
+from anki_forvo_dl.src.Exceptions import FieldNotFoundException
 
 
 def get_field_id(field_name: str, note: Note) -> int:
@@ -66,7 +66,7 @@ def open_file(path):
 
 
 def log_debug(msg):
-    from .. import user_files_dir, debug_mode
+    from ... import user_files_dir, debug_mode
     if debug_mode:
         with open(os.path.join(user_files_dir, "logs", "debug"), "a", encoding="utf8") as f:
             f.write(msg + "\n")

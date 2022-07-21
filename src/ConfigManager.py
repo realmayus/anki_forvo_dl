@@ -3,11 +3,12 @@ import os
 
 import aqt
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QLayout, QLineEdit, QComboBox, QCheckBox, QHBoxLayout
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QLayout, QLineEdit, QComboBox, QCheckBox, QHBoxLayout, \
+    QScrollArea, QFrame
 
 from .Config import Config, ConfigObject, OptionType
 from .GuiElements import StringListControl
-from .Util import delete_layout_contents
+from anki_forvo_dl.src.util.Util import delete_layout_contents
 
 
 class ConfigManager(QDialog):
@@ -26,7 +27,6 @@ class ConfigManager(QDialog):
         self.layout.setAlignment(QtCore.Qt.AlignTop)
         self.layout.setSpacing(20)
         self.setLayout(self.layout)
-        self.layout.setSizeConstraint(QLayout.SetFixedSize)
 
         # Cache language list
         with open(os.path.join(asset_dir, "languages.json"), encoding="utf8") as f:
@@ -39,13 +39,19 @@ class ConfigManager(QDialog):
         # -----------------------------
         description = "<h2>General Settings</h2>"
         label = QLabel(description)
-        label.setFixedWidth(400)
+        label.setFixedWidth(350)
         label.setContentsMargins(0, 20, 0, 0)
-
-        self.general_col = QVBoxLayout()
+        scrollarea = QScrollArea(self)
+        scrollarea.setContentsMargins(0, 50, 0, 0)
+        general_frame = QFrame(scrollarea)
+        general_frame.setContentsMargins(0, 0, 0, 0)
+        self.general_col = QVBoxLayout(scrollarea)
         self.general_col.addWidget(label)
         self.general_col.setAlignment(QtCore.Qt.AlignTop)
-
+        general_frame.setLayout(self.general_col)
+        scrollarea.setWidget(general_frame)
+        scrollarea.setWidgetResizable(True)
+        scrollarea.setFixedWidth(400)
         for item in self.config.get_config_objects_template():
             item: ConfigObject
             if item.friendly.startswith("#"):
@@ -58,12 +64,20 @@ class ConfigManager(QDialog):
         # -----------------------------
         description = "<h2>Deck-specific Settings</h2>"  # big headline
         label = QLabel(description)
-        label.setFixedWidth(400)  # ensure width of column
+        label.setFixedWidth(350)  # ensure width of column
         label.setContentsMargins(0, 20, 0, 0)
 
-        self.deck_col = QVBoxLayout()  # outer column that contains all deck-specific settings
+        deck_scrollarea = QScrollArea(self)
+        deck_scrollarea.setContentsMargins(0, 50, 0, 0)
+        deck_frame = QFrame(deck_scrollarea)
+        deck_frame.setContentsMargins(0, 0, 0, 0)
+        self.deck_col = QVBoxLayout(deck_scrollarea)  # outer column that contains all deck-specific settings
         self.deck_col.setAlignment(QtCore.Qt.AlignTop)
         self.deck_col.addWidget(label)
+        deck_frame.setLayout(self.deck_col)
+        deck_scrollarea.setWidget(deck_frame)
+        deck_scrollarea.setWidgetResizable(True)
+        deck_scrollarea.setFixedWidth(400)
 
         selector = QVBoxLayout()  # layout that incorporates deck selection dropdown and label
         selector.setContentsMargins(20, 0, 20, 0)
@@ -97,12 +111,21 @@ class ConfigManager(QDialog):
         # -----------------------------
         description = "<h2>Note Type-specific Settings</h2>"  # big headline
         label = QLabel(description)
-        label.setFixedWidth(400)  # ensure width of column
+        label.setFixedWidth(350)  # ensure width of column
         label.setContentsMargins(0, 20, 0, 0)
 
+        nt_scrollarea = QScrollArea(self)
+        nt_scrollarea.setContentsMargins(0, 50, 0, 0)
+        nt_frame = QFrame(nt_scrollarea)
+        nt_frame.setContentsMargins(0, 0, 0, 0)
+        self.nt_col = QVBoxLayout(nt_scrollarea)  # outer column that contains all deck-specific settings
         self.nt_col = QVBoxLayout()  # outer column that contains all nt-specific settings
         self.nt_col.setAlignment(QtCore.Qt.AlignTop)
         self.nt_col.addWidget(label)
+        nt_frame.setLayout(self.nt_col)
+        nt_scrollarea.setWidget(nt_frame)
+        nt_scrollarea.setWidgetResizable(True)
+        nt_scrollarea.setFixedWidth(400)
 
         selector = QVBoxLayout() # layout that incorporates nt selector and label
         selector.setContentsMargins(20, 0, 20, 0)
@@ -132,9 +155,9 @@ class ConfigManager(QDialog):
         self.draw_nt_elements()
 
         # -----------------------------
-        self.layout.addLayout(self.general_col)  # add columns to horizontal layout
-        self.layout.addLayout(self.deck_col)
-        self.layout.addLayout(self.nt_col)
+        self.layout.addWidget(scrollarea, alignment=QtCore.Qt.AlignLeft)  # add columns to horizontal layout
+        self.layout.addWidget(deck_scrollarea, alignment=QtCore.Qt.AlignLeft)
+        self.layout.addWidget(nt_scrollarea, alignment=QtCore.Qt.AlignLeft)
         self.adjustSize()  # recalculate geometry so that everything fits into the window
 
 
