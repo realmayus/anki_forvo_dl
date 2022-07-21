@@ -108,7 +108,7 @@ class Forvo:
         lang_container = [lang for lang in available_langs_el if
                           re.findall(r"language-container-(\w{2,4})", lang.attrs["id"])[0] == self.language][0]
         log_debug("[Forvo.py] Done searching lang container")
-        pronunciations: Tag = lang_container.find_all(class_="pronunciations")[0].find_all(class_="show-all-pronunciations")[0].find_all("li")
+        pronunciations: Tag = lang_container.find_all(class_="pronunciations")[0].find_all(class_="pronunciations-list")[0].find_all("li")
         
         log_debug("[Forvo.py] Going through all pronunciations")
         for pronunciation in pronunciations:
@@ -137,17 +137,24 @@ class Forvo:
                 pronunciation_dl = pronunciation_dls[0]
                 dl_url = "https://audio00.forvo.com/audios/mp3/" + str(base64.b64decode(pronunciation_dl), "utf-8")
 
-            username = pronunciation.find_all(class_="ofLink", recursive=False)
-            if len(username) == 0:
-                username = re.findall("Pronunciation by(.*)", pronunciation.contents[2], re.S)[0].strip()
-            else:
-                username = username[0].contents[0]
+            author_info = pronunciation.find_all(
+                lambda el: bool(el.find_all(string=re.compile("Pronunciation by"))),
+                class_="info",
+            )[0]
+            username = re.findall("Pronunciation by(.*)", author_info.get_text(" "), re.S)[0].strip()
+            # data-p* appears to be a way to define arguments for click event
+            # handlers; heuristic: if there's only one unique integer value,
+            # then it's the ID
+            id_, = {
+                int(v) for link in pronunciation.find_all(class_="ofLink")
+                for k, v in link.attrs.items()
+                if re.match(r"^data-p\d+$", k) and re.match(r"^\d+$", v)
+            }
             self.pronunciations.append(
                 Pronunciation(self.language,
                               username,
                               pronunciation.find_all(class_="from")[0].contents[0],
-                              int(pronunciation.find_all(class_="more")[0].find_all(class_="main_actions")[0].find_all(
-                                  class_="share")[0].attrs["data-id"]),
+                              id_,
                               vote_count,
                               dl_url,
                               is_ogg,
