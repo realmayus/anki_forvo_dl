@@ -1,3 +1,7 @@
+#1.0.5
+- Fixed Forvo functionality (thanks to univerio!)
+- Made settings dialog scrollable
+
 #1.0.4
 - Added option to deactivate .ogg fallback
 - Fixed bug when selecting fields (window would close without showing the language selection dialog)
