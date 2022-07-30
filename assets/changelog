@@ -1,3 +1,6 @@
+#1.0.6
+- Now escaping slashes in filename that would lead to issues on certain file systems.
+
 #1.0.5
 - Fixed Forvo functionality (thanks to univerio!)
 - Made settings dialog scrollable
