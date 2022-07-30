@@ -78,7 +78,7 @@ def delete_layout_contents(layout):
             item = layout.takeAt(0)
             widget = item.widget()
             if widget is not None:
-                widget.deleteLater()
+                widget.setParent(None)
             else:
                 delete_layout_contents(item.layout())
 
