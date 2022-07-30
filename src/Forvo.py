@@ -36,7 +36,7 @@ class Pronunciation:
         """Downloads the pronunciation using the pronunciation url in the pronunciation object, adds the audio to Anki's DB and stores the media id in the pronunciation object."""
         from .. import temp_dir
         req = urllib.request.Request(self.download_url)
-        dl_path = os.path.join(temp_dir, "pronunciation_" + self.language + "_" + self.word + (
+        dl_path = os.path.join(temp_dir, "pronunciation_" + self.language + "_" + self.word.replace("/", "-") + (
             ".ogg" if self.is_ogg else ".mp3"))
         with open(dl_path, "wb") as f:
             res: HTTPResponse = urllib.request.urlopen(req)
