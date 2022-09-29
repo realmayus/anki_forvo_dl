@@ -146,22 +146,23 @@ class Forvo:
             # data-p* appears to be a way to define arguments for click event
             # handlers; heuristic: if there's only one unique integer value,
             # then it's the ID
-            id_, = {
+            id_ = next(iter({
                 int(v) for link in pronunciation.find_all(class_="ofLink")
                 for k, v in link.attrs.items()
                 if re.match(r"^data-p\d+$", k) and re.match(r"^\d+$", v)
-            }
-            self.pronunciations.append(
-                Pronunciation(self.language,
-                              username,
-                              pronunciation.find_all(class_="from")[0].contents[0],
-                              id_,
-                              vote_count,
-                              dl_url,
-                              is_ogg,
-                              self.word,
-                              self.mw
-                              ))
+            }))
+            if id_:
+                self.pronunciations.append(
+                    Pronunciation(self.language,
+                                  username,
+                                  pronunciation.find_all(class_="from")[0].contents[0],
+                                  id_,
+                                  vote_count,
+                                  dl_url,
+                                  is_ogg,
+                                  self.word,
+                                  self.mw
+                                  ))
 
         return self
 
