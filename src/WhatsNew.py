@@ -1,6 +1,6 @@
 import os
 from typing import Union
-from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QLayout
+from PyQt6.QtWidgets import QDialog, QLabel, QVBoxLayout, QLayout
 
 from anki_forvo_dl.src.util.Util import parse_version
 

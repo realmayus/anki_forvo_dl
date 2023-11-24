@@ -2,8 +2,8 @@ import json
 import os
 
 import aqt
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QLayout, QLineEdit, QComboBox, QCheckBox, QHBoxLayout, \
+from PyQt6 import QtCore
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLayout, QLineEdit, QComboBox, QCheckBox, QHBoxLayout, \
     QScrollArea, QFrame
 
 from .Config import Config, ConfigObject, OptionType

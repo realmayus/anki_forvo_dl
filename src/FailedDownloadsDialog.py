@@ -1,7 +1,7 @@
 from typing import List
-from PyQt5.QtCore import Qt, QUrl
-from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QListWidget, QListWidgetItem, QAbstractScrollArea, \
+from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QListWidget, QListWidgetItem, QAbstractScrollArea, \
     QPushButton, QHBoxLayout, QWidget, QAbstractItemView
 from anki.cards import Card
 from aqt.browser import Browser
