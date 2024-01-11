@@ -1,8 +1,6 @@
 from functools import partial
 
-from PyQt5.QtCore import QSize
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QLayout, QDialog, QPushButton, QVBoxLayout, QWidget, QHBoxLayout, QLineEdit, QLabel, \
+from aqt.qt import QSize, QIcon, QLayout, QDialog, QPushButton, QVBoxLayout, QWidget, QHBoxLayout, QLineEdit, QLabel, \
     QComboBox
 
 from .Config import ConfigObject

@@ -1,9 +1,10 @@
 import os
 import anki
 from typing import List
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+#from PyQt5.QtWidgets import *
+#from PyQt5.QtGui import *
+#from PyQt5.QtCore import *
+from aqt.qt import *
 
 from .Forvo import Pronunciation
 from anki_forvo_dl.src.util.Util import CustomScrollbar
@@ -77,7 +78,7 @@ class AddSingle(QDialog):
         if hidden_entries_amount > 0:
             self.description += f"<b><small>There are {hidden_entries_amount} more entries which you chose to hide by deactivating .ogg fallback.</small></b>"
         self.description_label = QLabel(text=self.description)
-        self.description_label.setAlignment(Qt.AlignCenter)
+        self.description_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.layout.addWidget(self.description_label)
 
         # Create the list

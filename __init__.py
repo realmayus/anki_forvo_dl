@@ -57,7 +57,7 @@ def handle_field_select(d, note_type_id, field_type, editor):
 def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
     if mode is None:
         modifiers = QApplication.keyboardModifiers()
-        if modifiers == Qt.ShiftModifier:
+        if modifiers == Qt.KeyboardModifier.ShiftModifier:
             """Choose top pronunciation automatically when shift key is held down"""
             mode = "auto"
 

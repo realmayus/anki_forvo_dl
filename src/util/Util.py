@@ -3,7 +3,7 @@ import platform
 import subprocess
 from dataclasses import dataclass
 
-from PyQt5.QtWidgets import QScrollBar, QWidget
+from aqt.qt import QScrollBar
 from anki.cards import Card
 from anki.notes import Note
 

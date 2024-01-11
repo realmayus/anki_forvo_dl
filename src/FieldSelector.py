@@ -1,5 +1,4 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QLabel, QVBoxLayout, QDialog, QRadioButton, QPushButton, QButtonGroup
+from aqt.qt import Qt, QLabel, QVBoxLayout, QDialog, QRadioButton, QPushButton, QButtonGroup
 from aqt import AnkiQt
 
 from .Config import Config
@@ -20,7 +19,7 @@ class FieldSelector(QDialog):
         description_label = QLabel(description_header)
         description_label.setMinimumSize(self.sizeHint())
         description_label.setWordWrap(True)
-        description_label.setAlignment(Qt.AlignCenter)
+        description_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.layout.addWidget(description_label)
 
