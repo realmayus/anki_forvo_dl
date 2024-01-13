@@ -100,9 +100,9 @@ class AddSingle(QDialog):
         pronunciation_list.setFixedWidth(480)
         pronunciation_list.setMinimumHeight(500)
         pronunciation_list.setVerticalScrollBar(CustomScrollbar())
-        pronunciation_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        pronunciation_list.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
-        pronunciation_list.setSelectionMode(QAbstractItemView.NoSelection)
+        pronunciation_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        pronunciation_list.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        pronunciation_list.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
         self.setMaximumHeight(1000)
 
         self.layout.addWidget(pronunciation_list)
