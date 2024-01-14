@@ -61,7 +61,7 @@ def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
             """Choose top pronunciation automatically when shift key is held down"""
             mode = "auto"
 
-    deck_id = editor.card.did if editor.card is not None else editor.parentWindow.deckChooser.selectedId()
+    deck_id = editor.card.did if editor.card is not None else editor.parentWindow.deck_chooser.selectedId()
 
     if editor.note is not None:
         note_type_id = editor.note.mid
