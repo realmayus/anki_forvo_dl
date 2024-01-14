@@ -1,7 +1,5 @@
 from typing import List
-from PyQt5.QtCore import Qt, QUrl
-from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QListWidget, QListWidgetItem, QAbstractScrollArea, \
+from aqt.qt import Qt, QUrl, QDesktopServices, QDialog, QVBoxLayout, QLabel, QListWidget, QListWidgetItem, QAbstractScrollArea, \
     QPushButton, QHBoxLayout, QWidget, QAbstractItemView
 from anki.cards import Card
 from aqt.browser import Browser
@@ -61,7 +59,7 @@ class FailedDownloadsDialog(QDialog):
         self.description_label.setMinimumSize(self.sizeHint())
         self.description_label.setMinimumHeight(100)
         self.description_label.setWordWrap(True)
-        self.description_label.setAlignment(Qt.AlignCenter)
+        self.description_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.layout.addWidget(self.description_label)
         self.show_reasons()
 

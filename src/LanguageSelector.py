@@ -1,8 +1,7 @@
 import json
 import os
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QComboBox, QPushButton
+from aqt.qt import Qt, QDialog, QVBoxLayout, QLabel, QComboBox, QPushButton
 
 
 class LanguageSelector(QDialog):
@@ -20,7 +19,7 @@ class LanguageSelector(QDialog):
         description_label = QLabel(description)
         description_label.setMinimumSize(self.sizeHint())
         description_label.setWordWrap(True)
-        description_label.setAlignment(Qt.AlignCenter)
+        description_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.layout.addWidget(description_label)
 
