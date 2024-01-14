@@ -1,9 +1,6 @@
 import os
 import anki
 from typing import List
-#from PyQt5.QtWidgets import *
-#from PyQt5.QtGui import *
-#from PyQt5.QtCore import *
 from aqt.qt import *
 
 from .Forvo import Pronunciation
