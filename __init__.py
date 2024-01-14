@@ -174,7 +174,7 @@ def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
 
                 def flush_field():
                     if not editor.addMode:  # save
-                        editor.note.flush()
+                        mw.col.update_note(editor.note)
                     editor.currentField = get_field_id(audio_field, editor.note)
                     editor.loadNote(focusTo=get_field_id(audio_field, editor.note))
 
@@ -209,7 +209,7 @@ def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
                         "Couldn't find field '%s' for adding the audio string. Please create a field with this name or change it in the config for the note type id %s" % (
                             audio_field, str(note_type_id)), editor.widget)
                 if not editor.addMode:
-                    editor.note.flush()
+                    mw.col.update_note(editor.note)
                 editor.loadNote()
 
 
