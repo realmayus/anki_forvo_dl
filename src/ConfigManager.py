@@ -2,8 +2,7 @@ import json
 import os
 
 import aqt
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QLayout, QLineEdit, QComboBox, QCheckBox, QHBoxLayout, \
+from aqt.qt import Qt, QDialog, QVBoxLayout, QLabel, QLayout, QLineEdit, QComboBox, QCheckBox, QHBoxLayout, \
     QScrollArea, QFrame
 
 from .Config import Config, ConfigObject, OptionType
@@ -24,7 +23,7 @@ class ConfigManager(QDialog):
         self.setWindowTitle("Configure anki-forvo-dl")
 
         self.layout = QHBoxLayout()
-        self.layout.setAlignment(QtCore.Qt.AlignTop)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.layout.setSpacing(20)
         self.setLayout(self.layout)
 
@@ -47,7 +46,7 @@ class ConfigManager(QDialog):
         general_frame.setContentsMargins(0, 0, 0, 0)
         self.general_col = QVBoxLayout(scrollarea)
         self.general_col.addWidget(label)
-        self.general_col.setAlignment(QtCore.Qt.AlignTop)
+        self.general_col.setAlignment(Qt.AlignmentFlag.AlignTop)
         general_frame.setLayout(self.general_col)
         scrollarea.setWidget(general_frame)
         scrollarea.setWidgetResizable(True)
@@ -72,7 +71,7 @@ class ConfigManager(QDialog):
         deck_frame = QFrame(deck_scrollarea)
         deck_frame.setContentsMargins(0, 0, 0, 0)
         self.deck_col = QVBoxLayout(deck_scrollarea)  # outer column that contains all deck-specific settings
-        self.deck_col.setAlignment(QtCore.Qt.AlignTop)
+        self.deck_col.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.deck_col.addWidget(label)
         deck_frame.setLayout(self.deck_col)
         deck_scrollarea.setWidget(deck_frame)
@@ -87,7 +86,7 @@ class ConfigManager(QDialog):
         selector.addWidget(label)
 
         self.inner_deck_col = QVBoxLayout()  # inner layout (within the deck_col layout) that contains the individual settings
-        self.inner_deck_col.setAlignment(QtCore.Qt.AlignTop)
+        self.inner_deck_col.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.deck_selector = QComboBox()  # Actual dropdown
         self.deck_selector.currentIndexChanged.connect(lambda: self.draw_deck_elements())  # Connect events that fire on dropdown selection change
@@ -120,7 +119,7 @@ class ConfigManager(QDialog):
         nt_frame.setContentsMargins(0, 0, 0, 0)
         self.nt_col = QVBoxLayout(nt_scrollarea)  # outer column that contains all deck-specific settings
         self.nt_col = QVBoxLayout()  # outer column that contains all nt-specific settings
-        self.nt_col.setAlignment(QtCore.Qt.AlignTop)
+        self.nt_col.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.nt_col.addWidget(label)
         nt_frame.setLayout(self.nt_col)
         nt_scrollarea.setWidget(nt_frame)
@@ -135,7 +134,7 @@ class ConfigManager(QDialog):
         selector.addWidget(label)
 
         self.inner_nt_col = QVBoxLayout()  # inner layout (within the nt_col layout) that contains the individual settings
-        self.inner_nt_col.setAlignment(QtCore.Qt.AlignTop)
+        self.inner_nt_col.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.nt_selector = QComboBox()  # Actual dropdown
         self.nt_selector.currentIndexChanged.connect(self.draw_nt_elements)  # Connect events that fire on dropdown selection change
@@ -155,9 +154,9 @@ class ConfigManager(QDialog):
         self.draw_nt_elements()
 
         # -----------------------------
-        self.layout.addWidget(scrollarea, alignment=QtCore.Qt.AlignLeft)  # add columns to horizontal layout
-        self.layout.addWidget(deck_scrollarea, alignment=QtCore.Qt.AlignLeft)
-        self.layout.addWidget(nt_scrollarea, alignment=QtCore.Qt.AlignLeft)
+        self.layout.addWidget(scrollarea, alignment=Qt.AlignmentFlag.AlignLeft)  # add columns to horizontal layout
+        self.layout.addWidget(deck_scrollarea, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.layout.addWidget(nt_scrollarea, alignment=Qt.AlignmentFlag.AlignLeft)
         self.adjustSize()  # recalculate geometry so that everything fits into the window
 
 
