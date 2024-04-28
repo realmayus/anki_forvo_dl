@@ -6,7 +6,7 @@ from aqt.browser import Browser
 
 from .Config import Config
 from .Exceptions import all_errors
-from anki_forvo_dl.src.util.Util import FailedDownload, open_file
+from ..src.util.Util import FailedDownload, open_file
 
 
 class FailedListWidgetItemWidget(QWidget):

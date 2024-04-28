@@ -4,7 +4,7 @@ from typing import List
 from aqt.qt import *
 
 from .Forvo import Pronunciation
-from anki_forvo_dl.src.util.Util import CustomScrollbar
+from ..src.util.Util import CustomScrollbar
 
 
 class PronunciationWidget(QWidget):

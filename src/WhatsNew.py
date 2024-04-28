@@ -2,7 +2,7 @@ import os
 from typing import Union
 from aqt.qt import QDialog, QLabel, QVBoxLayout, QLayout
 
-from anki_forvo_dl.src.util.Util import parse_version
+from ..src.util.Util import parse_version
 
 
 class WhatsNew(QDialog):

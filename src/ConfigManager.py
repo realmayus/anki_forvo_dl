@@ -7,7 +7,7 @@ from aqt.qt import Qt, QDialog, QVBoxLayout, QLabel, QLayout, QLineEdit, QComboB
 
 from .Config import Config, ConfigObject, OptionType
 from .GuiElements import StringListControl
-from anki_forvo_dl.src.util.Util import delete_layout_contents
+from ..src.util.Util import delete_layout_contents
 
 
 class ConfigManager(QDialog):

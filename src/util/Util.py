@@ -7,7 +7,7 @@ from aqt.qt import QScrollBar
 from anki.cards import Card
 from anki.notes import Note
 
-from anki_forvo_dl.src.Exceptions import FieldNotFoundException
+from ..Exceptions import FieldNotFoundException
 
 
 def get_field_id(field_name: str, note: Note) -> int:

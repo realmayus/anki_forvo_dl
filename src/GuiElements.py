@@ -4,7 +4,7 @@ from aqt.qt import QSize, QIcon, QLayout, QDialog, QPushButton, QVBoxLayout, QWi
     QComboBox
 
 from .Config import ConfigObject
-from anki_forvo_dl.src.util.Util import delete_layout_contents
+from ..src.util.Util import delete_layout_contents
 
 import os
 
