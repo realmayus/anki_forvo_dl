@@ -108,59 +108,59 @@ class Forvo:
         lang_container = [lang for lang in available_langs_el if
                           re.findall(r"language-container-(\w{2,4})", lang.attrs["id"])[0] == self.language][0]
         log_debug("[Forvo.py] Done searching lang container")
-        pronunciations: Tag = lang_container.find_all(class_="pronunciations")[0].find_all(class_="pronunciations-list")[0].find_all("li")
         
         log_debug("[Forvo.py] Going through all pronunciations")
-        for pronunciation in pronunciations:
-            if len(pronunciation.find_all(class_="more")) == 0:
-                continue
+        for accents in lang_container.find_all(class_="pronunciations")[0].find_all(class_="pronunciations-list"):
+            for pronunciation in accents.find_all("li"):
+                if len(pronunciation.find_all(class_="more")) == 0:
+                    continue
 
-            vote_count = pronunciation.find_all(class_="more")[0].find_all(
-                class_="main_actions")[0].find_all(
-                id=re.compile(r"word_rate_\d+"))[0].find_all(class_="num_votes")[0]
+                vote_count = pronunciation.find_all(class_="more")[0].find_all(
+                    class_="main_actions")[0].find_all(
+                    id=re.compile(r"word_rate_\d+"))[0].find_all(class_="num_votes")[0]
 
-            vote_count_inner_span = vote_count.find_all("span")
-            if len(vote_count_inner_span) == 0:
-                vote_count = 0
-            else:
-                vote_count = int(str(re.findall(r"(-?\d+).*", vote_count_inner_span[0].contents[0])[0]))
+                vote_count_inner_span = vote_count.find_all("span")
+                if len(vote_count_inner_span) == 0:
+                    vote_count = 0
+                else:
+                    vote_count = int(str(re.findall(r"(-?\d+).*", vote_count_inner_span[0].contents[0])[0]))
 
-            pronunciation_dls = re.findall(r"Play\(\d+,'.+','.+',\w+,'([^']+)", pronunciation.find_all(id=re.compile(r"play_\d+"))[0].attrs["onclick"])
+                pronunciation_dls = re.findall(r"Play\(\d+,'.+','.+',\w+,'([^']+)", pronunciation.find_all(id=re.compile(r"play_\d+"))[0].attrs["onclick"])
 
-            is_ogg = False
-            if len(pronunciation_dls) == 0:
-                """Fallback to .ogg file"""
-                pronunciation_dl = re.findall(r"Play\(\d+,'[^']+','([^']+)", pronunciation.find_all(id=re.compile(r"play_\d+"))[0].attrs["onclick"])[0]
-                dl_url = "https://audio00.forvo.com/ogg/" + str(base64.b64decode(pronunciation_dl), "utf-8")
-                is_ogg = True
-            else:
-                pronunciation_dl = pronunciation_dls[0]
-                dl_url = "https://audio00.forvo.com/audios/mp3/" + str(base64.b64decode(pronunciation_dl), "utf-8")
+                is_ogg = False
+                if len(pronunciation_dls) == 0:
+                    """Fallback to .ogg file"""
+                    pronunciation_dl = re.findall(r"Play\(\d+,'[^']+','([^']+)", pronunciation.find_all(id=re.compile(r"play_\d+"))[0].attrs["onclick"])[0]
+                    dl_url = "https://audio00.forvo.com/ogg/" + str(base64.b64decode(pronunciation_dl), "utf-8")
+                    is_ogg = True
+                else:
+                    pronunciation_dl = pronunciation_dls[0]
+                    dl_url = "https://audio00.forvo.com/audios/mp3/" + str(base64.b64decode(pronunciation_dl), "utf-8")
 
-            author_info = pronunciation.find_all(
-                lambda el: bool(el.find_all(string=re.compile("Pronunciation by"))),
-                class_="info",
-            )[0]
-            username = re.findall("Pronunciation by(.*)", author_info.get_text(" "), re.S)[0].strip()
-            # data-p* appears to be a way to define arguments for click event
-            # handlers; heuristic: if there's only one unique integer value,
-            # then it's the ID
-            id_, = {
-                int(v) for link in pronunciation.find_all(class_="ofLink")
-                for k, v in link.attrs.items()
-                if re.match(r"^data-p\d+$", k) and re.match(r"^\d+$", v)
-            }
-            self.pronunciations.append(
-                Pronunciation(self.language,
-                              username,
-                              pronunciation.find_all(class_="from")[0].contents[0],
-                              id_,
-                              vote_count,
-                              dl_url,
-                              is_ogg,
-                              self.word,
-                              self.media
-                              ))
+                author_info = pronunciation.find_all(
+                    lambda el: bool(el.find_all(string=re.compile("Pronunciation by"))),
+                    class_="info",
+                )[0]
+                username = re.findall("Pronunciation by(.*)", author_info.get_text(" "), re.S)[0].strip()
+                # data-p* appears to be a way to define arguments for click event
+                # handlers; heuristic: if there's only one unique integer value,
+                # then it's the ID
+                id_, = {
+                    int(v) for link in pronunciation.find_all(class_="ofLink")
+                    for k, v in link.attrs.items()
+                    if re.match(r"^data-p\d+$", k) and re.match(r"^\d+$", v)
+                }
+                self.pronunciations.append(
+                    Pronunciation(self.language,
+                                  username,
+                                  pronunciation.find_all(class_="from")[0].contents[0],
+                                  id_,
+                                  vote_count,
+                                  dl_url,
+                                  is_ogg,
+                                  self.word,
+                                  self.media
+                                  ))
 
         return self
 
