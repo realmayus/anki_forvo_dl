@@ -1,3 +1,6 @@
+#1.1.0
+- Added Qt6 support (thanks to @rowantran!)
+
 #1.0.6
 - Now escaping slashes in filename that would lead to issues on certain file systems.
 

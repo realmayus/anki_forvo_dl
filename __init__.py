@@ -24,7 +24,7 @@ from .src.WhatsNew import get_changelogs, WhatsNew
 
 
 """Release:"""
-release_ver = "1.0.6"
+release_ver = "1.0.7"
 
 
 """Paths to directories get determined based on __file__"""
