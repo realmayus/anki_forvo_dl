@@ -1,0 +1,1 @@
+zip -rx venv/\* mypy/\* .mypy_cache/\* .git/\* .idea/\* __pycache__/\* src/__pycache__/\* src/util/__pycache__/\* user_files/\* temp/\* meta.json -rX ../anki_forvo_dl.ankiaddon .
