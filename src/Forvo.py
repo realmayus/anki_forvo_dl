@@ -8,8 +8,7 @@ from http.client import HTTPResponse
 from typing import List, Union
 from urllib.error import HTTPError
 
-from aqt import AnkiQt
-from aqt.utils import showInfo
+from anki.media import MediaManager
 from bs4 import BeautifulSoup, Tag
 from .Config import Config
 from .Exceptions import NoResultsException
@@ -29,7 +28,7 @@ class Pronunciation:
     download_url: str
     is_ogg: bool
     word: str
-    mw: AnkiQt
+    media: MediaManager
     audio: Union[str, None] = None
 
     def download_pronunciation(self):
@@ -43,12 +42,12 @@ class Pronunciation:
             f.write(res.read())
             res.close()
 
-        media_name = self.mw.col.media.add_file(dl_path)
+        media_name = self.media.add_file(dl_path)
         self.audio = media_name
 
     def remove_pronunciation(self):
         """Removes the media file that was priorly downloaded"""
-        self.mw.col.media.trash_files([self.audio])
+        self.media.trash_files([self.audio])
         self.audio = None
 
 
@@ -62,12 +61,12 @@ def prepare_query_string(input_str: str, config: Config) -> str:
 
 
 class Forvo:
-    def __init__(self, word: str, language: str, mw, config: Config):
+    def __init__(self, word: str, language: str, media: MediaManager, config: Config):
         self.html: BeautifulSoup
         self.language = language
         self.word = prepare_query_string(word, config)
         self.pronunciations: List[Pronunciation] = []
-        self.mw = mw
+        self.media = media
 
         # Set a user agent so that Forvo/CloudFlare lets us access the page
         opener = urllib.request.build_opener()
@@ -160,7 +159,7 @@ class Forvo:
                               dl_url,
                               is_ogg,
                               self.word,
-                              self.mw
+                              self.media
                               ))
 
         return self

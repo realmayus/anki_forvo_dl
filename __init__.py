@@ -1,12 +1,13 @@
 import functools
 import pathlib
-from typing import List, Tuple, Union
-import os
+from typing import List, Tuple
 import anki
 import aqt.utils
 from anki.hooks import addHook
+from anki.notes import Note
 from aqt import mw, gui_hooks
 from aqt.editor import Editor
+from aqt.operations import QueryOp
 from aqt.qt import *
 from aqt.utils import showInfo, showWarning
 from bs4 import BeautifulSoup
@@ -15,7 +16,7 @@ from .src.About import About
 from .src.AddSingle import AddSingle
 from .src.Config import Config, ConfigObject, OptionType
 from .src.ConfigManager import ConfigManager
-from .src.Exceptions import NoResultsException, FieldNotFoundException
+from .src.Exceptions import FieldNotFoundException
 from .src.FieldSelector import FieldSelector
 from .src.Forvo import Forvo, Pronunciation
 from .src.LanguageSelector import LanguageSelector
@@ -24,7 +25,7 @@ from .src.WhatsNew import get_changelogs, WhatsNew
 
 
 """Release:"""
-release_ver = "1.0.7"
+release_ver = "1.1.1"
 
 
 """Paths to directories get determined based on __file__"""
@@ -52,6 +53,94 @@ def handle_field_select(d, note_type_id, field_type, editor):
     else:
         showInfo("Cancelled download because fields weren't selected.", editor.widget)
         return None
+
+
+def on_fetch_success(forvo: Forvo, editor: Editor, note: Note, mode: str, audio_field: str, note_type_id: int):
+    if forvo is not None:
+        results = forvo.get_pronunciations().pronunciations
+    else:
+        showInfo("No results found! :(", editor.widget)
+        return
+
+    hidden_entries_amount = 0
+    if config.get_config_object("skipOggFallback").value:
+        viable_entries = [p for p in results if not p.is_ogg]
+        hidden_entries_amount = len(results) - len(viable_entries)
+        if len(viable_entries) == 0:
+            showInfo(
+                f"No results found! :(\nThere are {hidden_entries_amount} entries which you chose to skip by deactivating .ogg fallback.")
+            return
+        results = viable_entries
+
+    if mode == "auto":
+        def add_automatically(auto_results):
+            """If shift key is held down"""
+            auto_results.sort(key=lambda result: result.votes)  # sort by votes
+            top: Pronunciation = auto_results[len(auto_results) - 1]  # get most upvoted pronunciation
+
+            def on_download_success():
+                try:
+                    if config.get_config_object("audioFieldAddMode").value == "append":
+                        note.fields[
+                            get_field_id(audio_field, note)] += "[sound:%s]" % top.audio
+                    elif config.get_config_object("audioFieldAddMode").value == "replace":
+                        note.fields[
+                            get_field_id(audio_field, note)] = "[sound:%s]" % top.audio
+                    else:  # prepend
+                        note.fields[
+                            get_field_id(audio_field, note)] = "[sound:%s]" % top.audio + note.fields[
+                            get_field_id(audio_field, note)]
+                except FieldNotFoundException:
+                    showWarning(
+                        f"Couldn't find field '{audio_field}' for adding the audio string. Please create a field with "
+                        f"this name or change it in the config for the note type id {str(note_type_id)}", editor.widget)
+
+                if config.get_config_object("playAudioAfterSingleAddAutomaticSelection").value:  # play audio if desired
+                    anki.sound.play(top.audio)
+
+                if note == editor.note:  # only update note if it's still the current note
+                    def flush_field():
+                        if not editor.addMode:  # save
+                            mw.col.update_note(note)
+                        editor.currentField = get_field_id(audio_field, note)
+                        editor.loadNote(focusTo=get_field_id(audio_field, note))
+
+                    editor.saveNow(flush_field, keepFocus=True)
+                else:
+                    mw.col.update_note(note)
+            op = QueryOp(parent=editor.mw, op=lambda x: top.download_pronunciation(), success=lambda x: on_download_success())
+            op.run_in_background()
+        editor.saveNow(functools.partial(add_automatically, results))
+    else:
+        dialog = AddSingle(editor.parentWindow, pronunciations=results, hidden_entries_amount=hidden_entries_amount)
+        dialog.exec()
+
+        Forvo.cleanup()
+        if dialog.selected_pronunciation is not None:
+            try:
+                add_mode = config.get_config_object("audioFieldAddMode").value
+                if add_mode == "append":
+                    editor.note.fields[
+                        get_field_id(audio_field,
+                                     editor.note)] += "[sound:%s]" % dialog.selected_pronunciation.audio
+                elif add_mode == "prepend":
+                    editor.note.fields[
+                        get_field_id(audio_field,
+                                     editor.note)] = "[sound:%s]" % dialog.selected_pronunciation.audio + \
+                                                     editor.note.fields[
+                                                         get_field_id(audio_field,
+                                                                      editor.note)]
+                elif add_mode == "replace":
+                    editor.note.fields[
+                        get_field_id(audio_field,
+                                     editor.note)] = "[sound:%s]" % dialog.selected_pronunciation.audio
+            except FieldNotFoundException:
+                showWarning(
+                    "Couldn't find field '%s' for adding the audio string. Please create a field with this name or change it in the config for the note type id %s" % (
+                        audio_field, str(note_type_id)), editor.widget)
+            if not editor.addMode:
+                mw.col.update_note(editor.note)
+            editor.loadNote()
 
 
 def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
@@ -124,93 +213,8 @@ def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
         else:
             language = config_lang.value
 
-        try:
-            forvo = Forvo(query, language, editor.mw, config).load_search_query()
-            if forvo is not None:
-                results = forvo.get_pronunciations().pronunciations
-            else:
-                raise NoResultsException()
-        except NoResultsException:
-            showInfo("No results found! :(", editor.widget)
-            return
-
-        hidden_entries_amount = 0
-        if config.get_config_object("skipOggFallback").value:
-            viable_entries = [p for p in results if not p.is_ogg]
-            hidden_entries_amount = len(results) - len(viable_entries)
-            if len(viable_entries) == 0:
-                showInfo(f"No results found! :(\nThere are {hidden_entries_amount} entries which you chose to skip by deactivating .ogg fallback.")
-                return
-            results = viable_entries
-
-
-        if mode == "auto":
-            def add_automatically(auto_results):
-                """If shift key is held down"""
-                auto_results.sort(key=lambda result: result.votes)  # sort by votes
-                top: Pronunciation = auto_results[len(auto_results) - 1]  # get most upvoted pronunciation
-                top.download_pronunciation()  # download that
-                try:
-                    if config.get_config_object("audioFieldAddMode").value == "append":
-                        """append"""
-                        editor.note.fields[
-                            get_field_id(audio_field, editor.note)] += "[sound:%s]" % top.audio
-                    elif config.get_config_object("audioFieldAddMode").value == "replace":
-                        """replace"""
-                        editor.note.fields[
-                            get_field_id(audio_field, editor.note)] = "[sound:%s]" % top.audio
-                    else:
-                        """prepend"""
-                        editor.note.fields[
-                            get_field_id(audio_field, editor.note)] = "[sound:%s]" % top.audio + editor.note.fields[
-                            get_field_id(audio_field, editor.note)]
-                except FieldNotFoundException:
-                    showWarning(
-                        "Couldn't find field '%s' for adding the audio string. Please create a field with this name or change it in the config for the note type id %s" % (
-                            audio_field, str(note_type_id)), editor.widget)
-
-                if config.get_config_object("playAudioAfterSingleAddAutomaticSelection").value:  # play audio if desired
-                    anki.sound.play(top.audio)
-
-                def flush_field():
-                    if not editor.addMode:  # save
-                        mw.col.update_note(editor.note)
-                    editor.currentField = get_field_id(audio_field, editor.note)
-                    editor.loadNote(focusTo=get_field_id(audio_field, editor.note))
-
-                editor.saveNow(flush_field, keepFocus=True)
-
-            editor.saveNow(functools.partial(add_automatically, results), keepFocus=False)
-        else:
-            dialog = AddSingle(editor.parentWindow, pronunciations=results, hidden_entries_amount=hidden_entries_amount)
-            dialog.exec()
-
-            Forvo.cleanup()
-            if dialog.selected_pronunciation is not None:
-                try:
-                    add_mode = config.get_config_object("audioFieldAddMode").value
-                    if add_mode == "append":
-                        editor.note.fields[
-                            get_field_id(audio_field,
-                                         editor.note)] += "[sound:%s]" % dialog.selected_pronunciation.audio
-                    elif add_mode == "prepend":
-                        editor.note.fields[
-                            get_field_id(audio_field,
-                                         editor.note)] = "[sound:%s]" % dialog.selected_pronunciation.audio + \
-                                                         editor.note.fields[
-                                                             get_field_id(audio_field,
-                                                                          editor.note)]
-                    elif add_mode == "replace":
-                        editor.note.fields[
-                            get_field_id(audio_field,
-                                         editor.note)] = "[sound:%s]" % dialog.selected_pronunciation.audio
-                except FieldNotFoundException:
-                    showWarning(
-                        "Couldn't find field '%s' for adding the audio string. Please create a field with this name or change it in the config for the note type id %s" % (
-                            audio_field, str(note_type_id)), editor.widget)
-                if not editor.addMode:
-                    mw.col.update_note(editor.note)
-                editor.loadNote()
+        op = QueryOp(parent=editor.mw, op=lambda x: Forvo(query, language, editor.mw.col.media, config).load_search_query(), success=lambda forvo: on_fetch_success(forvo, editor, editor.note, mode, audio_field, note_type_id))
+        op.run_in_background()
 
 
 def on_editor_btn_click(editor: Editor, mode: Union[None, str] = None):

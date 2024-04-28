@@ -45,8 +45,6 @@ class FieldSelector(QDialog):
         self.selected_field = None
         self.layout.addWidget(self.next_btn)
 
-
-
     def selection_changed(self):
         selected = self.buttongroup.checkedButton()
         if selected is not None:
