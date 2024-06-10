@@ -16,7 +16,7 @@ from .src.About import About
 from .src.AddSingle import AddSingle
 from .src.Config import Config, ConfigObject, OptionType
 from .src.ConfigManager import ConfigManager
-from .src.Exceptions import FieldNotFoundException
+from .src.Exceptions import FieldNotFoundException, NoResultsException
 from .src.FieldSelector import FieldSelector
 from .src.Forvo import Forvo, Pronunciation
 from .src.LanguageSelector import LanguageSelector
@@ -56,9 +56,11 @@ def handle_field_select(d, note_type_id, field_type, editor):
 
 
 def on_fetch_success(forvo: Forvo, editor: Editor, note: Note, mode: str, audio_field: str, note_type_id: int):
-    if forvo is not None:
+    try:
+        if forvo is None:
+            raise NoResultsException()
         results = forvo.get_pronunciations().pronunciations
-    else:
+    except NoResultsException:
         showInfo("No results found! :(", editor.widget)
         return
 

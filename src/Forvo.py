@@ -153,18 +153,18 @@ class Forvo:
                     for k, v in link.attrs.items()
                     if re.match(r"^data-p\d+$", k) and re.match(r"^\d+$", v)
                 }))
-            if id_:
-                self.pronunciations.append(
-                    Pronunciation(self.language,
-                                  username,
-                                  pronunciation.find_all(class_="from")[0].contents[0],
-                                  id_,
-                                  vote_count,
-                                  dl_url,
-                                  is_ogg,
-                                  self.word,
-                                  self.media
-                                  ))
+                if id_:
+                    self.pronunciations.append(
+                        Pronunciation(self.language,
+                                    username,
+                                    pronunciation.find_all(class_="from")[0].contents[0],
+                                    id_,
+                                    vote_count,
+                                    dl_url,
+                                    is_ogg,
+                                    self.word,
+                                    self.media
+                                    ))
 
         return self
 
