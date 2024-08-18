@@ -90,7 +90,6 @@ class ConfigManager(QDialog):
 
         self.deck_selector = QComboBox()  # Actual dropdown
         self.deck_selector.currentIndexChanged.connect(lambda: self.draw_deck_elements())  # Connect events that fire on dropdown selection change
-        self.deck_selector.currentTextChanged.connect(lambda: self.draw_deck_elements())
         selector.addWidget(self.deck_selector)  # add dropdown to layout
 
 
@@ -138,7 +137,6 @@ class ConfigManager(QDialog):
 
         self.nt_selector = QComboBox()  # Actual dropdown
         self.nt_selector.currentIndexChanged.connect(self.draw_nt_elements)  # Connect events that fire on dropdown selection change
-        self.nt_selector.currentTextChanged.connect(self.draw_nt_elements)
         selector.addWidget(self.nt_selector)  # add dropdown to layout
 
 
@@ -227,7 +225,6 @@ class ConfigManager(QDialog):
             dropdown.setCurrentIndex(next(i for i, x in enumerate(config_object.options) if x == config_object.value))
             layout.addWidget(dropdown)
             dropdown.currentIndexChanged.connect(lambda new: self.update_state(option_name, new, note_type_id, deck_id))
-            dropdown.currentTextChanged.connect(lambda new: self.update_state(option_name, new, note_type_id, deck_id))
 
     def update_state(self, option_name: str, new_value, note_type_id=None, deck_id=None):
         """Based on the arguments passed, this function automatically determines where in the settings to update the
