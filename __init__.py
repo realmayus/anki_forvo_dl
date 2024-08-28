@@ -215,7 +215,13 @@ def add_pronunciation(editor: Editor, mode: Union[None, str] = None):
         else:
             language = config_lang.value
 
-        op = QueryOp(parent=editor.mw, op=lambda x: Forvo(query, language, editor.mw.col.media, config).load_search_query(), success=lambda forvo: on_fetch_success(forvo, editor, editor.note, mode, audio_field, note_type_id))
+        def search_query(x):
+            try:
+                return Forvo(query, language, editor.mw.col.media, config).load_search_query()
+            except NoResultsException:
+                return None
+
+        op = QueryOp(parent=editor.mw, op=search_query, success=lambda forvo: on_fetch_success(forvo, editor, editor.note, mode, audio_field, note_type_id))
         op.run_in_background()
 
 

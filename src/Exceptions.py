@@ -1,9 +1,17 @@
-class NoResultsException(Exception):
+class AnkiForvoException(Exception):
+    friendly = "AnkiForvoException"
+    info = "An exception occurred in the anki-forvo-dl add-on."
+
+    def __str__(self):
+        return self.friendly + ": " + self.info
+
+
+class NoResultsException(AnkiForvoException):
     friendly = "No results found"
     info = "No pronunciations were found on Forvo for the cards."
 
 
-class FieldNotFoundException(Exception):
+class FieldNotFoundException(AnkiForvoException):
     friendly = "Field not found"
     info = "A field couldn't be found."
 
@@ -12,7 +20,7 @@ class FieldNotFoundException(Exception):
         self.specific_info = "'%s'" % field_name
 
 
-class DownloadCancelledException(Exception):
+class DownloadCancelledException(AnkiForvoException):
     friendly = "Download cancelled"
     info = "These pronunciations couldn't be downloaded because the download was cancelled."
 
