@@ -1,3 +1,5 @@
+import base64
+import mimetypes
 import os
 import platform
 import subprocess
@@ -85,3 +87,38 @@ def delete_layout_contents(layout):
 
 def parse_version(version):
     return tuple(map(int, (version.split("."))))
+
+
+def resource_to_data(path: str) -> str:
+    """Convert a file (specified by a path) into a data URI."""
+    if not os.path.exists(path):
+        raise FileNotFoundError
+    mime, _ = mimetypes.guess_type(path)
+    with open(path, "rb") as fp:
+        data = fp.read()
+        data64 = b"".join(base64.encodebytes(data).splitlines())
+        return f"data:{mime};base64,{data64.decode('ascii')}"
+
+
+# todo: find a better way to do this
+# Converts ISO 639-1 language codes to ISO 639-2 language codes
+# This is necessary because Tatoeba uses ISO 639-2 language codes, while Forvo uses ISO 639-1 language codes
+def language_conversion(iso_639_1_code: str) -> str:
+    if iso_639_1_code == "ja":
+        return "jpn"
+    elif iso_639_1_code == "en":
+        return "eng"
+    elif iso_639_1_code == "es":
+        return "spa"
+    elif iso_639_1_code == "fr":
+        return "fra"
+    elif iso_639_1_code == "de":
+        return "deu"
+    elif iso_639_1_code == "it":
+        return "ita"
+    elif iso_639_1_code == "pt":
+        return "por"
+    elif iso_639_1_code == "ru":
+        return "rus"
+    else:
+        return iso_639_1_code

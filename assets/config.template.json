@@ -3,27 +3,42 @@
     "searchField": {
       "friendly": "Search Field",
       "default": "Word",
-      "description": "Select the field whose text should be used to search on Forvo.",
+      "description": "Select the field whose text should be used to search on Forvo and Tatoeba.",
       "type": "text"
     },
     "audioField": {
       "friendly": "Audio Field",
       "description": "Select the field where the audio should be put in.",
       "type": "text"
+    },
+    "sentenceField": {
+        "friendly": "Sentence Field",
+        "description": "Select the field where the sentence should be put in.",
+        "type": "text"
+    },
+    "sentenceTranslationField": {
+        "friendly": "Sentence Translation Field",
+        "description": "Select the field where the sentence translation should be put in.",
+        "type": "text"
+    },
+    "sentenceAudioField": {
+        "friendly": "Sentence Audio Field",
+        "description": "Select the field where the sentence audio should be put in.",
+        "type": "text"
     }
   },
   "deckSpecific": {
     "language": {
       "friendly": "Deck Language",
-      "description": "The language of this deck that will be used to search on Forvo. [See all possible options](https://github.com/realmayus/anki_forvo_dl/blob/main/assets/languages.json)",
+      "description": "The language of this deck that will be used to search on Forvo and Tatoeba. [See all possible options](https://github.com/realmayus/anki_forvo_dl/blob/main/assets/languages.json)",
       "default": "ja",
       "type": "lang"
     },
-    "preferredCountries": {
-      "friendly": "Preferred Countries",
-      "description": "Define countries from which you prefer pronunciations. This can be useful, if you want to download an audio file with a specific dialect.",
-      "default": "",
-      "type": "country"
+    "addTranscription": {
+      "friendly": "Add sentence transcription",
+      "description": "Adds the transcription of the sentence to the sentence field if available. This is done using HTML.",
+      "default": true,
+      "type": "boolean"
     }
   },
   "audioFieldAddMode": {
@@ -35,21 +50,15 @@
       "prepend", "replace", "append"
     ]
   },
-  "skipExistingBulkAdd": {
-    "friendly": "Skip existing",
-    "description": "Skip cards that already have content in the audio field (Bulk add mode)",
-    "default": true,
-    "type": "boolean"
-  },
-  "playAudioAfterSingleAddAutomaticSelection": {
-    "friendly": "Play audio after automatic selection (single add)",
-    "description": "Play the audio that was selected automatically when the shift key was held down when pressing the blue forvo button in the editor",
+  "playAudioAfterAutomaticSelection": {
+    "friendly": "Play audio after automatic selection",
+    "description": "Play the audio after automatic add has completed successfully.",
     "default": true,
     "type": "boolean"
   },
   "replaceCharacters": {
     "friendly": "Characters to replace",
-    "description": "A list of characters that should be removed from the search term before searching on forvo.",
+    "description": "A list of characters that should be removed from the search term before searching on Forvo and Tatoeba.",
     "default": [
         "・", "~", "。", "."
     ],
@@ -63,8 +72,20 @@
   },
   "skipOggFallback": {
     "friendly": "Deactivate .ogg file fallback",
-    "description": "Sometimes, only .ogg files are available. These unfortunately don't work on anki's iOS app and are slightly bigger in size. This option allows you to skip those entries and remove them from the pronunciation list.",
+    "description": "Sometimes, only .ogg files are available for Forvo downloads. These unfortunately don't work on Anki's iOS app and are slightly bigger in size. This option allows you to skip those entries and remove them from the pronunciation list.",
     "default": false,
     "type": "boolean"
+  },
+  "minSentenceAudioResults": {
+      "friendly": "Minimum sentence audio results",
+      "description": "The minimum amount of sentence audio results that should be fetched. After this count, we will stop fetching more results.",
+      "default": 2,
+      "type": "number"
+  },
+  "maxSentenceResults": {
+      "friendly": "Maximum sentence results",
+      "description": "The maximum amount of sentence results that should be fetched. After this count, we will stop fetching more results.",
+      "default": 50,
+      "type": "number"
   }
 }

@@ -10,11 +10,12 @@ from enum import Enum
 
 class ConfigObjectHasNoValue(Exception):
     def __init__(self, config_object: 'ConfigObject'):
-        super().__init__("Config object with config option %s has no value and the default value isn't set as fallback" % config_object.name)
+        super().__init__(
+            "Config object with config option %s has no value and the default value isn't set as fallback" % config_object.name)
 
 
 class Config:
-    """Ridiculously over-engineered class that handles all things config."""
+    """Ridiculously over-engineered class that handles all things config. I'll have to rewrite this at some point"""
     config: dict
     template: dict
 
@@ -42,7 +43,6 @@ class Config:
         with open(self.config_path, "w", encoding="utf8") as f:
             f.write(json.dumps(self.config, indent=4))
 
-
     def ensure_options(self):
         """Ensures that all options defined in the template are present in the config."""
         for k, v in self.template.items():
@@ -63,7 +63,6 @@ class Config:
         self.config[config_object.name] = config_object.value
         self._save()
         self.load_config()
-
 
     def get_config_options(self):
         config_dupe = copy.deepcopy(self.config)
@@ -87,7 +86,6 @@ class Config:
 
         return objects
 
-
     def get_deck_config_objects_template(self, deck_id: int):
         """Goes through all options in the *template* and then populates them with the actual values from the
         configuration.  """
@@ -98,7 +96,6 @@ class Config:
 
         return objects
 
-
     def get_config_object(self, name) -> 'ConfigObject':
         return ConfigObject(
             name,
@@ -107,7 +104,8 @@ class Config:
             self.template[name]["description"],
             self.template[name].get("default", None) or None,
             self.get_config_options()[name],
-            options=self.template[name]["options"] if OptionType(self.template[name]["type"]) is OptionType.CHOICE else None
+            options=self.template[name]["options"] if OptionType(
+                self.template[name]["type"]) is OptionType.CHOICE else None
         )
 
     def get_specified_deck_ids(self) -> List[int]:
@@ -118,19 +116,16 @@ class Config:
         for deck in self.config["deckSpecific"]:
             deck: dict
             if deck["id"] == deck_id:
-                if name in deck.keys():
-                    return ConfigObject(
-                        name,
-                        OptionType(self.template["deckSpecific"][name]["type"]),
-                        self.template["deckSpecific"][name]["friendly"],
-                        self.template["deckSpecific"][name]["description"],
-                        self.template["deckSpecific"][name].get("default", None) or None,
-                        deck[name],
-                        deck=deck_id
-                    )
-                else:
-                    return None
-        return None
+                default = self.template["deckSpecific"][name].get("default", None)
+                return ConfigObject(
+                    name,
+                    OptionType(self.template["deckSpecific"][name]["type"]),
+                    self.template["deckSpecific"][name]["friendly"],
+                    self.template["deckSpecific"][name]["description"],
+                    default or None,
+                    deck[name] if name in deck.keys() else default,
+                    deck=deck_id
+                )
 
     def get_specified_note_type_ids(self) -> List[int]:
         """Returns a list of note types that are defined in the config."""
@@ -154,14 +149,14 @@ class Config:
                     return None
         return None
 
-    def set_deck_specific_config_object(self, config_object: 'ConfigObject', use_default_as_fallback=False):
+    def set_deck_specific_config_object(self, config_object: 'ConfigObject'):
         existing: list = self.config["deckSpecific"]
         existing_options_for_deck = copy.deepcopy(next((x for x in existing if x["id"] == config_object.deck), {}))
         existing = [x for x in existing if x["id"] != config_object.deck]
         existing_options_for_deck["id"] = config_object.deck
-        if config_object.value is None and not use_default_as_fallback:
+        if config_object.value is None:
             raise ConfigObjectHasNoValue(config_object)
-        existing_options_for_deck[config_object.name] = config_object.value or config_object.default
+        existing_options_for_deck[config_object.name] = config_object.value
         existing.append(existing_options_for_deck)
         self.config["deckSpecific"] = existing
         self._save()
@@ -169,7 +164,8 @@ class Config:
 
     def set_note_type_specific_config_object(self, config_object: 'ConfigObject', use_default_as_fallback=False):
         existing: list = self.config["noteTypeSpecific"]
-        existing_options_for_note_type = copy.deepcopy(next((x for x in existing if x["id"] == config_object.note_type), {}))
+        existing_options_for_note_type = copy.deepcopy(
+            next((x for x in existing if x["id"] == config_object.note_type), {}))
         existing = [x for x in existing if x["id"] != config_object.note_type]
         existing_options_for_note_type["id"] = config_object.note_type
         if config_object.value is None and not use_default_as_fallback:
@@ -179,7 +175,6 @@ class Config:
         self.config["noteTypeSpecific"] = existing
         self._save()
         self.load_config()
-
 
     def get_template(self, option: str, category=None):
         if category is None:
@@ -195,6 +190,7 @@ class OptionType(Enum):
     STRINGLIST = "stringlist"
     CHOICE = "choice"
     TEXT = "text"
+    NUMBER = "number"
 
 
 @dataclass
@@ -209,4 +205,4 @@ class ConfigObject:
     value: any = None
     deck: int = None  # Only if deck-specific
     note_type: int = None  # Only if note type-specific
-    options: List[str] = None # Only if type=choice
+    options: List[str] = None  # Only if type=choice

@@ -225,7 +225,10 @@ class ConfigManager(QDialog):
             dropdown.setCurrentIndex(next(i for i, x in enumerate(config_object.options) if x == config_object.value))
             layout.addWidget(dropdown)
             dropdown.currentIndexChanged.connect(lambda new: self.update_state(option_name, new, note_type_id, deck_id))
-
+        elif config_object.type is OptionType.NUMBER:
+            control = QLineEdit(str(config_object.value))
+            layout.addWidget(control)
+            control.textChanged.connect(lambda new: self.update_state(option_name, int(new), note_type_id, deck_id))
     def update_state(self, option_name: str, new_value, note_type_id=None, deck_id=None):
         """Based on the arguments passed, this function automatically determines where in the settings to update the
         specified option.   """
