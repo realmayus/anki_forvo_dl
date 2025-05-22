@@ -361,14 +361,11 @@ def add_editor_button(buttons: List[str], editor: Editor):
 
     return buttons + [
         "<div title=\"Add Forvo Pronunciation\n\nCTRL+F to open window\nCTRL+SHIFT+F to select top audio "
-        "automatically\nCTRL+ALT+F to search for custom term\" style=\"float: right; margin: 0 3px\"><div "
-        "style=\"display: flex; width: 50px; height: 25px; justify-content: center; align-items: center; padding: 0 "
-        "5px; border-radius: 5px; background-color: #0094FF; color: #ffffff; font-size: 10px\" onclick=\"pycmd("
-        "'forvo_dl');return false;\"><img style=\"height: 20px; width: 20px\" src=\"%s\"/></div></div>" % iconstr,
+        "automatically\nCTRL+ALT+F to search for custom term\" style=\"float: right; margin: 0 3px\"><div class=\"forvo-dl-btn\" style=\"display: flex; width: 50px; height: 25px; justify-content: center; align-items: center; padding: 0 5px; border-radius: 5px; background-color: #0094FF; color: #ffffff; font-size: 10px\"><img style=\"height: 20px; width: 20px\" src=\"%s\"/></div></div>" % iconstr,
 
         "<div title=\"Add Tatoeba Sentence\n\nSHIFT+click for coarse search\nCTRL+S to open window\nCTRL+SHIFT+S to select top "
         "sentence\nCTRL+ALT+S to search for custom term\" style=\"float: right; margin: 0 3px\"><div "
-        "style=\"display: flex; width: 50px; height: 25px; justify-content: center; align-items: center; padding: 0 "
+        "class=\"tatoeba-dl-btn\" style=\"display: flex; width: 50px; height: 25px; justify-content: center; align-items: center; padding: 0 "
         "5px; border-radius: 5px; background-color: #00AA00; color: #ffffff; font-size: 10px\" onclick=\"pycmd("
         "'sentence_dl');return false;\">!?</div></div>"
     ]
@@ -431,3 +428,28 @@ pref_action.triggered.connect(on_pref_btn_click)  # type: ignore
 about_action.triggered.connect(on_about_btn_click)  # type: ignore
 
 aqt.mw.form.menuTools.addMenu(menu)
+
+def on_editor_load(editor: Editor):
+    js = """
+    (function() {
+        function resetAndAddListener(selector, handler) {
+            var btn = document.querySelector(selector);
+            if (btn) {
+                var newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                newBtn.addEventListener('click', handler);
+            }
+        }
+        resetAndAddListener('.forvo-dl-btn', function(event) {
+            pycmd('forvo_dl');
+            event.preventDefault();
+        });
+        resetAndAddListener('.tatoeba-dl-btn', function(event) {
+            pycmd('sentence_dl');
+            event.preventDefault();
+        });
+    })();
+    """
+    editor.web.eval(js)
+
+gui_hooks.editor_did_load_note.append(on_editor_load)
